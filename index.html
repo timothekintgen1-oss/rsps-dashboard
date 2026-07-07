@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RSPS · Régime en direct — Montaigne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0B0E12; --panel:#11161F; --panel2:#161C27; --line:#222B38; --line2:#2C3645;
+  --txt:#E8ECF2; --txt2:#9AA6B6; --txt3:#5F6B7C;
+  --up:#20C3A2; --dn:#E0556A; --neu:#7C8696; --gold:#E8B14C; --btc:#F7931A; --eth:#6F7BE8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1200px 600px at 50% -10%,#141B26 0%,var(--ink) 60%);color:var(--txt);
+  font-family:'Inter',system-ui,sans-serif;line-height:1.5;padding:28px 18px 60px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+.mono{font-family:'IBM Plex Mono',monospace}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--txt3)}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:30px;letter-spacing:-.01em;line-height:1.05;margin-top:6px}
+h1 b{color:var(--up);font-weight:600}
+.sub{color:var(--txt2);font-size:13px;margin-top:6px;max-width:560px}
+.live{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;font-size:12px;color:var(--txt2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(32,195,162,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(32,195,162,.5)}70%{box-shadow:0 0 0 8px rgba(32,195,162,0)}100%{box-shadow:0 0 0 0 rgba(32,195,162,0)}}
+
+/* allocation banner */
+.banner{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);
+  border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:24px;position:relative;overflow:hidden}
+.banner::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dn)}
+.banner.long::before{background:var(--up)}
+.banner .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--txt3);margin-bottom:6px}
+.banner .regime{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px}
+.banner .regime.cash{color:var(--dn)} .banner .regime.long{color:var(--up)}
+.banner .alloc{font-size:15px;color:var(--txt);font-weight:500}
+.banner .vsep{width:1px;height:42px;background:var(--line2)}
+.banner .pill{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt2);
+  border:1px solid var(--line2);border-radius:999px;padding:7px 13px}
+
+/* gauges */
+.section-h{display:flex;align-items:baseline;gap:12px;margin:30px 2px 14px}
+.section-h h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px}
+.section-h .hint{font-size:12px;color:var(--txt3)}
+.gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:880px){.gauges{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.gauges{grid-template-columns:1fr}}
+.gcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.ghead{padding:11px 14px 10px;border-bottom:1px solid var(--line)}
+.ghead .gt{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;letter-spacing:.01em}
+.ghead .gtt{font-size:10.5px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
+.gstate{margin-top:8px;display:inline-block;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:6px}
+.gstate.neg{background:rgba(224,85,106,.14);color:var(--dn)}
+.gstate.pos{background:rgba(32,195,162,.14);color:var(--up)}
+.gstate.neu{background:rgba(124,134,150,.16);color:var(--neu)}
+.gbody{padding:6px 12px 14px;text-align:center}
+.gauge{width:100%;height:auto;display:block;margin:0 auto}
+.gval{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:26px;margin-top:-6px;letter-spacing:.01em}
+.gends{display:flex;justify-content:space-between;font-size:10.5px;color:var(--txt3);
+  font-family:'IBM Plex Mono',monospace;padding:2px 10px 0;margin-top:2px}
+.gdots{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.gdots b{display:block;width:100%;font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;font-weight:400}
+.gdots i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.gdots i.p{background:var(--up)} .gdots i.n{background:var(--dn)} .gdots i.z{background:var(--line2)}
+.gcard.gated{opacity:.82}
+.gcard.gated .gauge{filter:saturate(.45)}
+.gate{font-size:10px;color:var(--gold);font-family:'IBM Plex Mono',monospace;background:rgba(232,177,76,.1);
+  border:1px solid rgba(232,177,76,.28);border-radius:6px;padding:3px 8px;margin:0 auto 6px;display:inline-block}
+
+/* comparative */
+.cmp{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-top:14px}
+.cmp .legend{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:6px;font-size:12px;color:var(--txt2)}
+.cmp .legend span{display:flex;align-items:center;gap:7px}
+.cmp .legend .ln{width:18px;height:0;border-top-width:3px;border-top-style:solid;display:inline-block}
+.chartbox{position:relative;width:100%}
+.chartbox svg{width:100%;height:auto;display:block}
+.tip{position:absolute;pointer-events:none;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;
+  padding:7px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--txt);opacity:0;transition:opacity .1s;white-space:nowrap;z-index:5}
+
+/* metrics table */
+.mwrap{margin-top:16px;overflow-x:auto}
+table.m{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+table.m th,table.m td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line)}
+table.m th:first-child,table.m td:first-child{text-align:left}
+table.m thead th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);font-weight:500}
+table.m td{font-family:'IBM Plex Mono',monospace}
+table.m td.name{font-family:'Inter',sans-serif;font-weight:500}
+table.m tr.me td{color:var(--txt)} table.m tr.me{background:rgba(32,195,162,.05)}
+table.m tr.prof td{color:var(--txt2)} table.m tr.btc td{color:var(--txt3)}
+.pos{color:var(--up)} .neg{color:var(--dn)}
+.tag{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--txt2);margin-left:8px}
+
+/* foot row */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:680px){.frow{grid-template-columns:1fr}}
+.fcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.fcard .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3)}
+.fcard .big{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin:6px 0 2px}
+.fcard p{font-size:12px;color:var(--txt2);margin-top:4px}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--up)}
+.foot{margin-top:26px;font-size:11px;color:var(--txt3);line-height:1.7;border-top:1px solid var(--line);padding-top:16px}
+.foot b{color:var(--txt2);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow">Montaigne · Conseil &amp; Patrimoine</div>
+      <h1>RSPS — Régime <b>en direct</b></h1>
+      <div class="sub">Synthèse automatisée de tes quatre systèmes de tendance. Chaque boussole condense la moyenne des signaux de son système. Aucune saisie manuelle — tout se recalcule sur les données. Le modèle du professeur sert de repère de construction et de comparaison, pas de cible à répliquer.</div>
+    </div>
+    <div class="live"><span class="dot"></span><span>Dernier point : <b class="mono" id="asof">—</b></span></div>
+  </div>
+
+  <div class="banner" id="banner">
+    <div>
+      <div class="k">Régime de marché</div>
+      <div class="regime" id="regime">—</div>
+    </div>
+    <div class="vsep"></div>
+    <div>
+      <div class="k">Allocation cible</div>
+      <div class="alloc" id="alloc">—</div>
+    </div>
+    <div class="pill" id="srcpill">données figées · source TradingView</div>
+  </div>
+
+  <div class="section-h">
+    <h2>Boussoles des systèmes</h2>
+    <span class="hint">aiguille = moyenne des signaux ∈ [−1, +1] · rouge baissier · vert haussier</span>
+  </div>
+  <div class="gauges" id="gauges"></div>
+
+  <div class="section-h">
+    <h2>Performance comparée</h2>
+    <span class="hint">base 100 · échelle log · frais 0,045 %/transaction · décalage 1 j (anti-look-ahead)</span>
+  </div>
+  <div class="cmp">
+    <div class="legend">
+      <span><span class="ln" style="border-top-color:#20C3A2"></span>RSPS (cash hors marché)</span>
+      <span><span class="ln" style="border-top-color:#E8B14C;border-top-style:dashed"></span>RSPS + Or (dénominateur)</span>
+      <span><span class="ln" style="border-top-color:#7C8696;border-top-style:dotted"></span>BTC conservé</span>
+    </div>
+    <div class="chartbox"><div class="tip" id="tip"></div><svg id="eq" viewBox="0 0 1000 380" preserveAspectRatio="none" aria-label="Courbes d'équité comparées"></svg></div>
+    <div class="mwrap">
+      <table class="m" id="mtab"></table>
+    </div>
+  </div>
+
+  <div class="frow">
+    <div class="fcard">
+      <div class="k">Réciprocité du moteur</div>
+      <div class="big" id="recip">—</div>
+      <p id="recipP">Concordance entre mes ports Python et tes relevés manuels, sur les dates fournies.</p>
+      <div class="bar"><i id="recipbar" style="width:0%"></i></div>
+    </div>
+    <div class="fcard">
+      <div class="k">Fenêtre de référence (prof)</div>
+      <div class="big" id="winlbl">—</div>
+      <p>RSPS cash <b id="winraw" style="color:var(--up)">—</b> vs BTC <b id="winbtc" style="color:var(--txt3)">—</b> sur la même fenêtre. Détail dans le tableau.</p>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DEFAULT = {"date": "2026-06-30", "mtpi": -1.0, "regime": "CASH", "rotation": -1.0, "majeur": "BTC", "trash": 1.0, "small_caps": false, "ltpi": -0.7778, "alloc": "CASH · Dominant Denominator", "states": {"EWO (5 32)": -1, "MTF-EMA (7 19)": -1, "Sebastine (9 6)": -1, "Z-Score (30 20)": -1, "DFT (6 29)": -1, "WonderTrend (20)": -1, "TrendChange (11 35)": -1, "MA Band (20 5)": -1, "LNL (Tight)": -1, "DEGA (21..)": -1}, "rot_states": {"DEGA (23..)": -1, "Sebastine (16 15)": -1, "TrendChange (16 40)": -1, "Z-Score (27 18)": -1, "WonderTrend (def)": -1}, "trash_states": {"DFT (14 14)": 1, "EWO (7 26)": 1, "MTF-EMA (12 13)": 1, "Trend Strength (21)": 1, "Kalman Hull (3..)": 1}, "ltpi_states": {"LNL (Normal)": -1, "Sebastine (9 10)": -1, "EWO (4 26)": -1, "DFT (3 20)": -1, "AGMA (23 20)": -1, "TrendChange (40 60)": -1, "Kalman Hull (4..)": -1, "Trend Strength (17)": -1, "MTF-EMA (12 6)": 1}, "new_bars": {"2D": true, "3D": true, "W": false}, "reciprocity": {"by_block": {"MTPI": {"n": 6, "ok": 3}}, "mismatches": [{"date": "2024-07-25", "block": "MTPI", "label": "DEGA (21..)", "mine": 1, "his": -1}, {"date": "2024-07-25", "block": "MTPI", "label": "Z-Score (30 20)", "mine": 1, "his": -1}, {"date": "2024-07-25", "block": "MTPI", "label": "TrendChange (11 35)", "mine": -1, "his": 0}], "n": 6, "ok": 3, "pct": 50.0}};
+const BT_DEFAULT = {"curves": {"raw": [100.0, 91.1, 91.0, 91.0, 85.0, 82.7, 82.7, 114.1, 121.7, 100.4, 115.3, 114.5, 114.2, 135.1, 182.8, 171.6, 167.2, 236.8, 260.4, 567.9, 730.6, 700.2, 873.9, 1085.2, 860.7, 860.7, 860.7, 1041.3, 1062.9, 1081.0, 1149.0, 1051.7, 1051.7, 1051.7, 1051.7, 1122.8, 1045.7, 1045.7, 1045.7, 1045.7, 1153.8, 955.2, 955.2, 778.0, 777.7, 777.7, 919.1, 919.0, 828.7, 824.5, 802.9, 802.9, 785.9, 771.2, 771.2, 754.1, 927.6, 1131.2, 1169.2, 1039.2, 1318.2, 1499.8, 1349.6, 1349.6, 1214.7, 1221.0, 1064.1, 1064.1, 1032.9, 1126.4, 1585.9, 1491.9, 1568.4, 1480.9, 1480.9, 1480.9, 1698.4, 1685.0, 1954.5, 2667.6, 2501.5, 2411.6, 2166.6, 2166.6, 2166.6, 2080.2, 2080.2, 2080.2, 2082.6, 2045.5, 1947.8], "gold": [100.0, 91.1, 90.8, 89.6, 82.4, 80.2, 84.8, 116.9, 124.7, 94.6, 116.2, 115.3, 115.1, 136.1, 184.1, 172.9, 168.4, 238.6, 262.4, 572.2, 736.2, 705.5, 880.5, 1093.4, 877.4, 817.1, 817.1, 979.7, 1000.1, 1017.1, 1081.0, 989.5, 979.5, 972.6, 1034.2, 1108.3, 1018.0, 1018.0, 1018.0, 1018.0, 1123.2, 929.9, 917.4, 747.2, 760.8, 782.3, 942.4, 942.3, 872.7, 868.3, 823.0, 823.0, 805.6, 790.5, 781.3, 750.2, 935.2, 1140.5, 1178.8, 1047.8, 1308.6, 1488.8, 1300.0, 1355.3, 1219.3, 1268.0, 1096.2, 1119.2, 1131.4, 1233.8, 1737.1, 1634.1, 1718.0, 1648.4, 1707.8, 1794.1, 2037.1, 2021.0, 2344.3, 3199.6, 3000.4, 2913.9, 2445.2, 2583.4, 2665.6, 2677.4, 2753.1, 2682.4, 2685.5, 2637.7, 2511.7], "btc": [100.0, 107.1, 105.3, 84.0, 89.5, 74.5, 86.5, 103.5, 96.6, 71.1, 93.1, 99.4, 96.6, 100.8, 121.7, 115.4, 119.5, 172.4, 190.3, 429.0, 404.2, 514.4, 622.5, 609.7, 376.5, 333.4, 355.1, 520.6, 499.0, 650.7, 676.9, 497.7, 454.8, 393.8, 448.1, 480.4, 419.4, 307.8, 222.6, 244.3, 244.7, 207.8, 204.5, 185.2, 181.8, 177.8, 250.4, 249.4, 299.1, 299.9, 277.8, 316.5, 315.6, 302.8, 276.7, 283.5, 376.0, 461.8, 474.4, 453.1, 602.2, 738.6, 701.0, 740.2, 687.4, 686.5, 639.3, 608.2, 655.7, 731.5, 1011.6, 985.5, 1069.0, 935.5, 922.4, 985.9, 1127.6, 1103.7, 1242.7, 1267.5, 1177.0, 1280.7, 1070.8, 963.2, 932.6, 931.2, 682.0, 747.9, 800.6, 812.0, 699.4]}, "dates": ["2019-07-26", "2019-08-23", "2019-09-20", "2019-10-18", "2019-11-15", "2019-12-13", "2020-01-09", "2020-02-06", "2020-03-05", "2020-04-02", "2020-04-30", "2020-05-28", "2020-06-25", "2020-07-23", "2020-08-20", "2020-09-17", "2020-10-15", "2020-11-12", "2020-12-10", "2021-01-07", "2021-02-04", "2021-03-04", "2021-04-01", "2021-04-29", "2021-05-27", "2021-06-24", "2021-07-22", "2021-08-19", "2021-09-16", "2021-10-14", "2021-11-11", "2021-12-09", "2022-01-05", "2022-02-02", "2022-03-02", "2022-03-30", "2022-04-27", "2022-05-25", "2022-06-22", "2022-07-20", "2022-08-17", "2022-09-14", "2022-10-12", "2022-11-09", "2022-12-07", "2023-01-03", "2023-01-31", "2023-02-28", "2023-03-28", "2023-04-25", "2023-05-23", "2023-06-20", "2023-07-18", "2023-08-15", "2023-09-12", "2023-10-10", "2023-11-07", "2023-12-05", "2024-01-01", "2024-01-29", "2024-02-26", "2024-03-25", "2024-04-22", "2024-05-20", "2024-06-17", "2024-07-15", "2024-08-12", "2024-09-09", "2024-10-07", "2024-11-04", "2024-12-02", "2024-12-30", "2025-01-27", "2025-02-24", "2025-03-24", "2025-04-21", "2025-05-19", "2025-06-16", "2025-07-14", "2025-08-11", "2025-09-08", "2025-10-06", "2025-11-03", "2025-12-01", "2025-12-29", "2026-01-25", "2026-02-22", "2026-03-22", "2026-04-19", "2026-05-17", "2026-06-14"], "yearticks": {"2019": 0, "2020": 6, "2021": 19, "2022": 32, "2023": 45, "2024": 58, "2025": 72, "2026": 85}, "metrics_window": {"raw": {"perf": 44.0, "cagr": 31.1, "sharpe": 0.92, "dd": -25.7, "x": 1.44}, "gold": {"perf": 69.5, "cagr": 48.0, "sharpe": 1.17, "dd": -26.3, "x": 1.69}, "btc": {"perf": -14.2, "cagr": -10.7, "sharpe": -0.04, "dd": -49.2, "x": 0.86}}, "metrics_full": {"raw": {"perf": 1847.8, "cagr": 53.5, "sharpe": 1.14, "dd": -47.7, "x": 19.48}, "gold": {"perf": 2411.7, "cagr": 59.2, "sharpe": 1.21, "dd": -49.0, "x": 25.12}, "btc": {"perf": 518.4, "cagr": 30.1, "sharpe": 0.74, "dd": -76.0, "x": 6.18}}, "prof": {"raw": {"perf": 29.8, "sharpe": 0.78, "dd": -28.8}, "gold": {"perf": 87.3, "sharpe": 1.52, "dd": -21.8}, "btc": {"perf": -12.0, "sharpe": null, "dd": -50.0}}, "window": ["2025-01-01", "2026-05-07"]};
+let S = DEFAULT, BT = BT_DEFAULT;
+
+/* ---------- gauges ---------- */
+function polar(cx,cy,r,deg){const a=deg*Math.PI/180;return {x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)};}
+function arcP(cx,cy,r,a0,a1){const p0=polar(cx,cy,r,a0),p1=polar(cx,cy,r,a1);const lg=(a1-a0)>180?1:0;
+  return `M ${p0.x.toFixed(1)} ${p0.y.toFixed(1)} A ${r} ${r} 0 ${lg} 1 ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;}
+function gaugeSVG(score){
+  const cx=100,cy=108,r=82,w=15,A=135,nlo=-13.5,nhi=13.5;
+  const sc=Math.max(-1,Math.min(1,score)), sdeg=sc*A;
+  const col = sc>0.1?'#20C3A2':sc<-0.1?'#E0556A':'#9aa3b2';
+  let s=`<svg viewBox="0 0 200 176" class="gauge" role="img">`;
+  s+=`<path d="${arcP(cx,cy,r,-A,A)}" stroke="#1d2531" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+  s+=`<path d="${arcP(cx,cy,r,-A,nlo)}" stroke="#E0556A" stroke-width="${w}" fill="none"/>`;
+  s+=`<path d="${arcP(cx,cy,r,nlo,nhi)}" stroke="#566073" stroke-width="${w}" fill="none"/>`;
+  s+=`<path d="${arcP(cx,cy,r,nhi,A)}" stroke="#20C3A2" stroke-width="${w}" fill="none"/>`;
+  [-A,-67.5,0,67.5,A].forEach(d=>{const o=polar(cx,cy,r-w/2-2,d),i=polar(cx,cy,r-w/2-10,d);
+    s+=`<line x1="${o.x.toFixed(1)}" y1="${o.y.toFixed(1)}" x2="${i.x.toFixed(1)}" y2="${i.y.toFixed(1)}" stroke="#7a8493" stroke-width="1.4"/>`;});
+  s+=`<g transform="rotate(${sdeg.toFixed(1)} ${cx} ${cy})">
+       <polygon points="${cx-4.5},${cy} ${cx+4.5},${cy} ${cx},${(cy-r+10).toFixed(1)}" fill="${col}"/>
+       <circle cx="${cx}" cy="${cy}" r="9.5" fill="#0c1118" stroke="${col}" stroke-width="2.2"/>
+       <circle cx="${cx}" cy="${cy}" r="3" fill="${col}"/></g>`;
+  s+=`</svg>`; return s;
+}
+function dots(states){
+  let inner='<b>signaux</b>';
+  for(const k in states){const v=states[k];const c=v>0?'p':v<0?'n':'z';
+    inner+=`<i class="${c}" title="${k.replace(/"/g,'')}: ${v>0?'+1':v<0?'-1':'0'}"></i>`;}
+  return inner;
+}
+function stateLabel(sc,kind){
+  if(kind==='rot') return sc<0?'Majeur : BTC':sc>0?'Majeur : ETH':'Neutre';
+  if(kind==='trash') return sc>0.1?'Small-caps ON':'Small-caps OFF';
+  return sc>0.1?'État positif':sc<-0.1?'État négatif':'État neutre';
+}
+function fmt(x){return (x>=0?'+':'')+Number(x).toFixed(2);}
+
+const GAUGES=[
+  {key:'mtpi', t:'MTPI', tt:'Tendance moyen terme', st:'states',      ends:['Down','Up'],  kind:'t'},
+  {key:'ltpi', t:'LTPI', tt:'Long terme · ta version', st:'ltpi_states',ends:['Bear','Bull'],kind:'t', tag:'9 ind. tech.'},
+  {key:'rotation', t:'Rotation ETHBTC', tt:'Major dominant', st:'rot_states', ends:['BTC','ETH'], kind:'rot'},
+  {key:'trash', t:'Trash', tt:'Small-caps (OTHERS.D)', st:'trash_states', ends:['Off','≤20%'], kind:'trash'},
+];
+function renderGauges(){
+  const host=document.getElementById('gauges'); host.innerHTML='';
+  const long=(S.regime||'').toUpperCase()==='LONG';
+  GAUGES.forEach(g=>{
+    const sc = S[g.key]==null?0:S[g.key];
+    let cls = sc>0.1?'pos':sc<-0.1?'neg':'neu';
+    let label = stateLabel(sc,g.kind);
+    let gated=false;
+    if(g.kind==='trash' && !long){gated=true;cls='neu';label='Neutralisé · régime CASH';}
+    const valcol = gated?'var(--neu)':(sc>0.1?'var(--up)':sc<-0.1?'var(--dn)':'var(--neu)');
+    const st = S[g.st]||{};
+    const div=document.createElement('div'); div.className='gcard'+(gated?' gated':'');
+    div.innerHTML=`<div class="ghead">
+        <div class="gt">${g.t}${g.tag?`<span class="tag">${g.tag}</span>`:''}</div>
+        <div class="gtt">${g.tt}</div>
+        <span class="gstate ${cls}">${label}</span>
+      </div>
+      <div class="gbody">
+        ${gated?'<div class="gate">overlay conditionnel — actif seulement en régime LONG</div>':''}
+        ${gaugeSVG(sc)}
+        <div class="gval" style="color:${valcol}">${fmt(sc)}</div>
+        <div class="gends"><span>${g.ends[0]} −1</span><span>+1 ${g.ends[1]}</span></div>
+        <div class="gdots">${dots(st)}</div>
+      </div>`;
+    host.appendChild(div);
+  });
+}
+
+/* ---------- banner ---------- */
+function renderBanner(){
+  document.getElementById('asof').textContent = S.date||'—';
+  const long = (S.regime||'').toUpperCase()==='LONG';
+  const b=document.getElementById('banner'); b.classList.toggle('long',long);
+  const r=document.getElementById('regime'); r.textContent=S.regime||'—'; r.className='regime '+(long?'long':'cash');
+  document.getElementById('alloc').textContent=S.alloc||'—';
+}
+
+/* ---------- equity chart ---------- */
+function renderChart(){
+  const C=BT.curves, dates=BT.dates, yt=BT.yearticks||{};
+  const svg=document.getElementById('eq'); const W=1000,H=380,padL=46,padR=14,padT=14,padB=26;
+  const all=[...C.raw,...C.gold,...C.btc].filter(v=>v>0);
+  const lo=Math.min(...all), hi=Math.max(...all);
+  const llo=Math.log10(lo), lhi=Math.log10(hi);
+  const n=C.raw.length;
+  const X=i=>padL+(i/(n-1))*(W-padL-padR);
+  const Y=v=>padT+(1-(Math.log10(v)-llo)/(lhi-llo))*(H-padT-padB);
+  let g='';
+  [100,200,500,1000].forEach(v=>{if(v>=lo&&v<=hi){const y=Y(v).toFixed(1);
+    g+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#1c2430" stroke-width="1"/>`;
+    g+=`<text x="${padL-8}" y="${(+y+4).toFixed(1)}" fill="#5F6B7C" font-size="12" text-anchor="end" font-family="IBM Plex Mono">${v}</text>`;}});
+  for(const yr in yt){const x=X(yt[yr]).toFixed(1);
+    g+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="#171e29" stroke-width="1"/>`;
+    g+=`<text x="${x}" y="${H-8}" fill="#5F6B7C" font-size="12" text-anchor="middle" font-family="IBM Plex Mono">${yr}</text>`;}
+  const line=(arr,color,dash,wd)=>{let d='';arr.forEach((v,i)=>{d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';});
+    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${wd}" ${dash?`stroke-dasharray="${dash}"`:''} stroke-linejoin="round"/>`;}
+  g+=line(C.btc,'#7C8696',null,1.6);
+  g+=line(C.gold,'#E8B14C','7,5',2);
+  g+=line(C.raw,'#20C3A2',null,2.4);
+  // end dots
+  [['raw','#20C3A2'],['gold','#E8B14C'],['btc','#7C8696']].forEach(([k,c])=>{
+    const i=C[k].length-1; g+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(C[k][i]).toFixed(1)}" r="3.4" fill="${c}"/>`;});
+  svg.innerHTML=g;
+  // hover
+  const tip=document.getElementById('tip'), box=svg.parentElement;
+  svg.onmousemove=e=>{const rect=svg.getBoundingClientRect();const rx=(e.clientX-rect.left)/rect.width*W;
+    let i=Math.round((rx-padL)/(W-padL-padR)*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    tip.style.opacity=1; tip.style.left=Math.min(box.clientWidth-150,(e.clientX-rect.left))+'px'; tip.style.top=(e.clientY-rect.top-10)+'px';
+    tip.innerHTML=`${dates[i]}<br>RSPS ×${(C.raw[i]/100).toFixed(2)} · Or ×${(C.gold[i]/100).toFixed(2)} · BTC ×${(C.btc[i]/100).toFixed(2)}`;};
+  svg.onmouseleave=()=>tip.style.opacity=0;
+}
+
+/* ---------- metrics table ---------- */
+function pct(x){return (x>=0?'+':'')+Number(x).toFixed(1)+'%';}
+function cl(x){return x>=0?'pos':'neg';}
+function renderTable(){
+  const mw=BT.metrics_window, mf=BT.metrics_full, pf=BT.prof, win=BT.window;
+  const t=document.getElementById('mtab');
+  t.innerHTML=`<thead><tr><th>Stratégie</th><th>Perf. fenêtre</th><th>Perf. totale</th><th>CAGR</th><th>Sharpe</th><th>Max DD</th></tr></thead>
+  <tbody>
+    <tr class="me"><td class="name">RSPS — cash hors marché</td>
+      <td class="${cl(mw.raw.perf)}">${pct(mw.raw.perf)}</td><td>×${mf.raw.x}</td><td>${mf.raw.cagr}%</td><td>${mf.raw.sharpe}</td><td class="neg">${mf.raw.dd}%</td></tr>
+    <tr class="me"><td class="name">RSPS + Or (dénominateur)</td>
+      <td class="${cl(mw.gold.perf)}">${pct(mw.gold.perf)}</td><td>×${mf.gold.x}</td><td>${mf.gold.cagr}%</td><td>${mf.gold.sharpe}</td><td class="neg">${mf.gold.dd}%</td></tr>
+    <tr class="prof"><td class="name">Benchmark prof (fenêtre)</td>
+      <td class="${cl(pf.raw.perf)}">${pct(pf.raw.perf)}</td><td>—</td><td>—</td><td>${pf.raw.sharpe}</td><td class="neg">${pf.raw.dd}%</td></tr>
+    <tr class="prof"><td class="name">Benchmark prof + Or</td>
+      <td class="${cl(pf.gold.perf)}">${pct(pf.gold.perf)}</td><td>—</td><td>—</td><td>${pf.gold.sharpe}</td><td class="neg">${pf.gold.dd}%</td></tr>
+    <tr class="btc"><td class="name">BTC conservé</td>
+      <td class="${cl(mw.btc.perf)}">${pct(mw.btc.perf)}</td><td>×${mf.btc.x}</td><td>${mf.btc.cagr}%</td><td>${mf.btc.sharpe}</td><td class="neg">${mf.btc.dd}%</td></tr>
+  </tbody>`;
+  document.getElementById('winlbl').textContent = win? (win[0]+' → '+win[1]) : '—';
+  document.getElementById('winraw').textContent = pct(mw.raw.perf);
+  document.getElementById('winbtc').textContent = pct(mw.btc.perf);
+}
+
+/* ---------- reciprocity ---------- */
+function renderRecip(){
+  const r=S.reciprocity;
+  if(r){document.getElementById('recip').textContent=r.pct+'% ('+r.ok+'/'+r.n+')';
+    document.getElementById('recipbar').style.width=r.pct+'%';
+    document.getElementById('recipP').textContent='Concordance ports Python vs relevés manuels, sur '+r.n+' point(s) fourni(s).';}
+  else{document.getElementById('recip').textContent='—';}
+}
+
+function renderFoot(){
+  document.getElementById('foot').innerHTML=
+   `<b>Lecture des boussoles.</b> Chaque aiguille = moyenne arithmétique des signaux {−1,+1} du système. Les indicateurs sont reproduits à l'identique depuis tes scripts Pine. Le <b>LTPI est ta version technique à 9 indicateurs</b> — périmètre que tu assumes pour ta stratégie ; les composantes on-chain présentes dans certains modèles (type professeur) sont volontairement hors périmètre, faute de flux Glassnode. &nbsp;·&nbsp; <b>Backtest.</b> Calculé sur les exports TradingView (TOTAL, OTHERS.D, ETHBTC, BTC, ETH, Or), frais 0,045 %/transaction, signaux décalés d'un jour. Le <b>benchmark professeur</b> est sa publication, affiché comme simple repère comparatif. &nbsp;·&nbsp; <b>Automatisation.</b> Sur GitHub Pages, ce tableau de bord relit <span class="mono">state.json</span> + <span class="mono">backtest.json</span> à chaque ouverture ; le bot quotidien les régénère et la date se met à jour seule. Données ici figées au dernier export fourni. Document de travail interne — ne constitue pas un conseil en investissement.`;
+}
+
+function renderAll(){renderBanner();renderGauges();renderChart();renderTable();renderRecip();renderFoot();}
+renderAll();
+
+/* ---------- live override (GitHub Pages) ---------- */
+async function pull(){
+  try{
+    const [a,b]=await Promise.all([
+      fetch('./state.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('./backtest.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    if(a){S=a;}
+    if(b&&b.curves){ // sous-échantillonne comme l'embed
+      const dr=b.dates,c=b.curves,step=Math.max(1,Math.floor(dr.length/90)),idx=[];
+      for(let i=0;i<dr.length;i+=step)idx.push(i);
+      const pick=arr=>idx.map(i=>Math.round(arr[i]*10)/10);
+      const yt={};idx.forEach((i,j)=>{const y=dr[i].slice(0,4);if(!(y in yt))yt[y]=j;});
+      BT={curves:{raw:pick(c.raw),gold:pick(c.gold),btc:pick(c.btc)},dates:idx.map(i=>dr[i]),
+          yearticks:yt,metrics_window:b.metrics_window,metrics_full:b.metrics_full,prof:b.prof,window:b.window};
+    }
+    if(a||b){document.getElementById('srcpill').textContent='actualisé en direct';renderAll();}
+  }catch(e){}
+}
+pull();
+window.addEventListener('resize',()=>{renderChart();});
+</script>
+</body>
+</html>
