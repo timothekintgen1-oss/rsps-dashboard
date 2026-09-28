@@ -29,7 +29,7 @@ jobs:
         run: python runner.py
 
       - name: Robustesse
-        run: python robustness.py || echo "robustesse : échec, on garde la version précédente"
+        run: python robustness.py || echo "robustesse en échec, version précédente conservée"
 
       - name: Commit state
         run: |
