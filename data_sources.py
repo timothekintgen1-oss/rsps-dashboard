@@ -21,7 +21,8 @@ UA = {"User-Agent": "rsps-bot/1.0"}
 
 
 def binance_daily(symbol, start="2018-01-01"):
-    url = "https://api.binance.com/api/v3/klines"
+    # miroir public de Binance : api.binance.com renvoie 451 depuis les runners US de GitHub
+    url = "https://data-api.binance.vision/api/v3/klines"
     ms = int(pd.Timestamp(start).timestamp() * 1000); rows = []
     while True:
         r = requests.get(url, params={"symbol": symbol, "interval": "1d",
