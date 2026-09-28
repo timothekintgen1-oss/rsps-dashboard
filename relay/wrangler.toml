@@ -5,4 +5,4 @@ compatibility_date = "2026-09-01"
 # L'id est rempli au déploiement (npx wrangler kv namespace create RSPS)
 [[kv_namespaces]]
 binding = "RSPS"
-id = "REMPLACER_PAR_ID_KV"
+id = "be3e79d9000b4c46a98fd4e6b78187d8"
