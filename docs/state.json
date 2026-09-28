@@ -1,0 +1,87 @@
+{
+  "date": "2026-09-28",
+  "mtpi": 0.8,
+  "regime": "LONG",
+  "rotation": 0.6,
+  "majeur": "ETH",
+  "trash": 1.0,
+  "small_caps": true,
+  "ltpi": -0.1111,
+  "alloc": "LONG · ETH 80 / BTC 20  + small-caps ≤20%",
+  "states": {
+    "EWO (5 32)": 1,
+    "MTF-EMA (7 19)": 1,
+    "Sebastine (9 6)": 1,
+    "Z-Score (30 20)": 1,
+    "DFT (6 29)": 1,
+    "WonderTrend (20)": -1,
+    "TrendChange (11 35)": 1,
+    "MA Band (20 5)": 1,
+    "LNL (Tight)": 1,
+    "DEGA (21..)": 1
+  },
+  "rot_states": {
+    "DEGA (23..)": 1,
+    "Sebastine (16 15)": 1,
+    "TrendChange (16 40)": 1,
+    "Z-Score (27 18)": 1,
+    "WonderTrend (def)": -1
+  },
+  "trash_states": {
+    "DFT (14 14)": 1,
+    "EWO (7 26)": 1,
+    "MTF-EMA (12 13)": 1,
+    "Trend Strength (21)": 1,
+    "Kalman Hull (3..)": 1
+  },
+  "ltpi_states": {
+    "LNL (Normal)": 1,
+    "Sebastine (9 10)": -1,
+    "EWO (4 26)": -1,
+    "DFT (3 20)": -1,
+    "AGMA (23 20)": 1,
+    "TrendChange (40 60)": -1,
+    "Kalman Hull (4..)": 1,
+    "Trend Strength (17)": 1,
+    "MTF-EMA (12 6)": -1
+  },
+  "new_bars": {
+    "2D": true,
+    "3D": true,
+    "W": true
+  },
+  "reciprocity": {
+    "by_block": {
+      "MTPI": {
+        "n": 6,
+        "ok": 3
+      }
+    },
+    "mismatches": [
+      {
+        "date": "2024-07-25",
+        "block": "MTPI",
+        "label": "DEGA (21..)",
+        "mine": 1,
+        "his": -1
+      },
+      {
+        "date": "2024-07-25",
+        "block": "MTPI",
+        "label": "Z-Score (30 20)",
+        "mine": 1,
+        "his": -1
+      },
+      {
+        "date": "2024-07-25",
+        "block": "MTPI",
+        "label": "TrendChange (11 35)",
+        "mine": -1,
+        "his": 0
+      }
+    ],
+    "n": 6,
+    "ok": 3,
+    "pct": 50.0
+  }
+}

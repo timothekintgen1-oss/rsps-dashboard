@@ -1,0 +1,55 @@
+//@version=6
+strategy("RSPS-Lite v2 — TPI + filtre de tendance", overlay=true,
+     default_qty_type=strategy.percent_of_equity, default_qty_value=100,
+     initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.05)
+
+gs       = "Signaux"
+emaFast  = input.int(10,  "EMA rapide",           group=gs)
+emaSlow  = input.int(30,  "EMA lente",            group=gs)
+emaTrend = input.int(200, "EMA filtre tendance",  group=gs)
+rocLen   = input.int(20,  "Momentum (ROC)",       group=gs)
+
+gt       = "Décision"
+entryTh  = input.float(0.5, "Seuil d'achat (score >=)", step=0.25, minval=-1, maxval=1, group=gt)
+exitTh   = input.float(0.0, "Seuil de vente (score <)",  step=0.25, minval=-1, maxval=1, group=gt)
+useTrend = input.bool(true, "Acheter seulement au-dessus de l'EMA 200", group=gt)
+
+gstop    = "Stop-loss (ATR)"
+useStop  = input.bool(true, "Activer le stop ATR", group=gstop)
+atrLen   = input.int(14,    "Longueur ATR",        group=gstop)
+atrMult  = input.float(3.0, "Multiple ATR", step=0.5, group=gstop)
+
+gd       = "Plage de dates"
+useDates = input.bool(true, "Limiter a une plage", group=gd)
+dateFrom = input.time(timestamp("01 Jan 2020 00:00"), "Debut", group=gd)
+dateTo   = input.time(timestamp("01 Jan 2030 00:00"), "Fin",   group=gd)
+inDates  = not useDates or (time >= dateFrom and time <= dateTo)
+
+s1 = ta.ema(close, emaFast) > ta.ema(close, emaSlow) ? 1 : -1
+s2 = close > ta.ema(close, emaTrend) ? 1 : -1
+[macdLine, sigLine, hist] = ta.macd(close, 12, 26, 9)
+s3 = macdLine > sigLine ? 1 : -1
+s4 = ta.roc(close, rocLen) > 0 ? 1 : -1
+score = (s1 + s2 + s3 + s4) / 4.0
+trendOk = not useTrend or close > ta.ema(close, emaTrend)
+
+if score >= entryTh and trendOk and inDates
+    strategy.entry("Long", strategy.long)
+if score < exitTh
+    strategy.close("Long")
+if not inDates
+    strategy.close("Long")
+
+atr = ta.atr(atrLen)
+if useStop and strategy.position_size > 0
+    strategy.exit("Stop", "Long", stop = strategy.position_avg_price - atrMult * atr)
+
+plot(ta.ema(close, emaFast), "EMA rapide", color=color.aqua)
+plot(ta.ema(close, emaSlow), "EMA lente",  color=color.orange)
+plot(ta.ema(close, emaTrend),"EMA 200",    color=color.gray, linewidth=2)
+inMkt = strategy.position_size > 0
+bgcolor(inMkt ? color.new(color.teal, 90) : na)
+bgcolor(useDates and not inDates ? color.new(color.gray, 90) : na)
+
+alertcondition(score >= entryTh and trendOk, "RSPS-Lite Achat", "RSPS-Lite : passage LONG")
+alertcondition(score < exitTh, "RSPS-Lite Vente", "RSPS-Lite : passage CASH")
