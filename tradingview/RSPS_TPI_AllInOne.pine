@@ -1,0 +1,317 @@
+//@version=6
+// RSPS TPI — tout-en-un
+// Calcule les 29 indicateurs des 4 systèmes (MTPI, LTPI, Rotation, Small-caps) à partir du
+// code ORIGINAL des scripts publics (auteurs crédités ci-dessous), sur leurs propres
+// symboles et timeframes, et envoie chaque système au relais à la clôture de sa bougie.
+// À poser sur UN graphique CRYPTOCAP:TOTAL en 1D, avec UNE alerte « Any alert() function call ».
+//
+// Sources (MPL 2.0 sauf mention) : Elliott Wave Oscillator © Koryu · Sebastine Trend Catcher
+// © sebastinecc · DFT Overlay © wbburgin (+ jdehorty/KernelFunctions) · Trend Change Indicator
+// © QuantitativeAlpha · DEGA RMA © QuantEdgeB · LNL Trend System © lnlcapital · Trend Strength
+// Gauge © VanHe1sing · Kalman Hull Supertrend © BackQuant · MA Band Distance Monitor © HasanRifat
+// · 4-Colored EMA Difference & Stochastic Traffic Light © shalsak · WonderTrend © accutrades_net
+// · Adaptive Gaussian Moving Average © LeafAlgo.
+// Z-Score Deviation Fusion (RAKIQUANT) est protégé : remplacé par un z-score standard (proxy),
+// ou branché sur l'indicateur réel via « Source » si le graphique est en 2D.
+indicator("RSPS TPI — tout-en-un", shorttitle="RSPS TPI", overlay=false)
+
+import jdehorty/KernelFunctions/2 as kernel
+
+TOTAL  = input.symbol("CRYPTOCAP:TOTAL",    "TOTAL",    group="Symboles")
+ETHBTC = input.symbol("BINANCE:ETHBTC",     "ETHBTC",   group="Symboles")
+OTHD   = input.symbol("CRYPTOCAP:OTHERS.D", "OTHERS.D", group="Symboles")
+zUseExt = input.bool(false, "MTPI : utiliser le vrai Z-Score Deviation Fusion", group="Z-Score (protégé)",
+     tooltip="Uniquement si ce graphique est CRYPTOCAP:TOTAL en 2D avec l'indicateur Z-Score Deviation Fusion (30 20) ajouté. Sinon, un z-score standard est utilisé.")
+zSrc  = input.source(close, "Source Z-Score", group="Z-Score (protégé)")
+zMode = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "État ±1"], group="Z-Score (protégé)")
+
+// ============================================================================================
+//  Indicateurs — logique reprise des scripts originaux, renvoie +1 / -1 (0 = neutre)
+// ============================================================================================
+f_ewo(int f, int s) =>                                           // © Koryu
+    d = (ta.sma(close, f) - ta.sma(close, s)) / close * 100
+    d <= 0 ? -1 : 1
+
+f_sebastine(int len, int len2) =>                                // © sebastinecc
+    o = ta.ema(open, len)
+    c = ta.ema(close, len)
+    h = ta.ema(high, len)
+    l = ta.ema(low, len)
+    haclose = (o + h + l + c) / 4
+    haopen = o
+    haopen := na(haopen[1]) ? (o + c) / 2 : (haopen[1] + haclose[1]) / 2
+    o2 = ta.ema(haopen, len2)
+    c2 = ta.ema(haclose, len2)
+    seb = ((c2 / o2) - 1) * 100
+    seb >= 0 ? 1 : -1
+
+f_dft(int N, int smoothing) =>                                   // © wbburgin
+    dft = math.abs(ta.sma(close, N))                             // |composante DC| de la DFT
+    dfts = kernel.rationalQuadratic(dft, 25, 1, smoothing)
+    dft > dfts ? 1 : -1
+
+f_tci(int fast, int slow, int atrLen, float margin) =>          // © QuantitativeAlpha (EMA, close)
+    diff = ta.ema(close, fast) - ta.ema(close, slow)
+    a = ta.atr(atrLen)
+    diff > margin * a ? 1 : diff < -margin * a ? -1 : 0
+
+f_dema(float src, int len) =>
+    e1 = ta.ema(src, len)
+    2 * e1 - ta.ema(e1, len)
+
+f_dega(int lenD, int lenG, float sigma, int lenR, int lenA, float mUp, float mDn) =>   // © QuantEdgeB
+    dema = f_dema(close, lenD)
+    sumG = 0.0
+    wsum = 0.0
+    for i = 0 to lenG - 1
+        w = math.exp(-0.5 * math.pow((i - (lenG - 1) / 2) / sigma, 2))
+        sumG += w
+        wsum += dema[i] * w
+    rmaL = ta.rma(wsum / sumG, lenR)
+    cAtr = (lenA / 100) * f_dema(ta.tr(true), lenD * 2)
+    longR = rmaL + cAtr * mUp
+    shortR = rmaL - cAtr * mDn
+    var int qb = 0
+    if close > longR and not (close < shortR)
+        qb := 1
+    if close < shortR
+        qb := -1
+    qb
+
+f_lnl(string mode) =>                                            // © lnlcapital (Stop Line)
+    atrLen = mode == "Tight" ? 60 : mode == "Normal" ? 80 : mode == "Loose" ? 100 : mode == "FOMC" ? 120 : 140
+    trend = ta.ema(close, 13)
+    a = (atrLen / 100) * ta.ema(ta.tr(true), 8)
+    var float t = 0.0
+    t := close > trend + a ? 1 : close < trend - a ? -1 : t[1]
+    int(t)
+
+f_tsg(int len) =>                                                // © VanHe1sing (a = wma -> wma - sma)
+    ta.wma(close, len) - ta.sma(close, len) > 0 ? 1 : -1
+
+f_kstep(array<float> se, array<float> ec, float src, float mn, float pn) =>
+    pse = array.new_float(5)
+    pec = array.new_float(5)
+    for i = 0 to 4
+        array.set(pse, i, array.get(se, i))
+        array.set(pec, i, array.get(ec, i) + pn)
+    for i = 0 to 4
+        kg = array.get(pec, i) / (array.get(pec, i) + mn)
+        array.set(se, i, array.get(pse, i) + kg * (src - array.get(pse, i)))
+        array.set(ec, i, (1 - kg) * array.get(pec, i))
+    array.get(se, 0)
+
+f_st(float factor, int atrPeriod, float src) =>
+    atr = ta.atr(atrPeriod)
+    upperBand = src + factor * atr
+    lowerBand = src - factor * atr
+    prevLowerBand = nz(lowerBand[1])
+    prevUpperBand = nz(upperBand[1])
+    lowerBand := lowerBand > prevLowerBand or close[1] < prevLowerBand ? lowerBand : prevLowerBand
+    upperBand := upperBand < prevUpperBand or close[1] > prevUpperBand ? upperBand : prevUpperBand
+    int direction = na
+    float superTrend = na
+    prevSuperTrend = superTrend[1]
+    if na(atr[1])
+        direction := 1
+    else if prevSuperTrend == prevUpperBand
+        direction := close > upperBand ? -1 : 1
+    else
+        direction := close < lowerBand ? 1 : -1
+    superTrend := direction == -1 ? lowerBand : upperBand
+    direction
+
+f_kalman(float mn, float pn, int atrP, float factor) =>         // © BackQuant
+    // l'original partage un seul jeu de tableaux entre ses 4 appels au filtre : reproduit ici
+    var array<float> se = array.new_float(5, na)
+    var array<float> ec = array.new_float(5, 100.0)
+    if na(array.get(se, 0))
+        for i = 0 to 4
+            array.set(se, i, close)
+            array.set(ec, i, 1.0)
+    f_kstep(se, ec, close, mn, pn)                               // kalmanFilteredPrice
+    a = f_kstep(se, ec, close, mn / 2, pn)
+    b = f_kstep(se, ec, close, mn, pn)
+    khma = f_kstep(se, ec, 2 * a - b, math.round(math.sqrt(mn)), pn)
+    direction = f_st(factor, atrP, khma)
+    stLong = ta.crossunder(direction, 0)
+    stShort = ta.crossover(direction, 0)
+    var int trend = 0
+    if stLong and not stShort
+        trend := 1
+    if stShort
+        trend := -1
+    trend
+
+f_maband(int slowLen, int fastLen) =>                            // © HasanRifat (EMA lente, SMA rapide)
+    ta.sma(close, fastLen) > ta.ema(close, slowLen) ? 1 : -1
+
+f_mtfema(int l1, int l2) =>                                      // © shalsak (histogramme EMA)
+    ta.ema(close, l1) - ta.ema(close, l2) >= 0 ? 1 : -1
+
+f_wonder(int length) =>                                          // © accutrades_net (ptrend)
+    [kc, kcu, kcl] = ta.kc(close, length, 1.5, true)
+    out = ta.sar(0.02, 0.02, 0.2)
+    psar = out < close ? 1 : -1
+    var float save = out
+    if psar != psar[1]
+        save := out[1]
+    wavelen = psar == 1 and low > math.max(kc, low[2]) and low[1] > save and low[2] > math.max(kc, save) or psar == -1 and high < math.min(kc, high[2]) and high[1] < save and high[2] < math.min(kc, save) ? 3 : 0
+    int trend = 1
+    trend := nz(trend[1], trend)
+    trend := trend <= 0 and wavelen >= 3 and psar == 1 ? 1 : trend >= 0 and wavelen >= 3 and psar == -1 ? -1 : trend
+    trend := trend == -1 and save > save[1] or trend == 1 and save < save[1] ? 0 : trend
+    var int ptrend = 1
+    ptrend := trend != 0 ? trend : ptrend[1]
+    ptrend
+
+f_agma(int length, int volP) =>                                  // © LeafAlgo
+    sigma = ta.stdev(close, volP)
+    g = 0.0
+    sw = 0.0
+    hi = close
+    lo = close
+    for i = 0 to length - 1
+        hi := math.max(hi, close[i])                             // = ta.highest(close, i + 1)
+        lo := math.min(lo, close[i])                             // = ta.lowest(close, i + 1)
+        w = math.exp(-math.pow(((i - (length - 1)) / (2 * sigma)), 2) / 2)
+        g += (hi + lo) * w
+        sw += w
+    close >= (g / sw) / 2 ? 1 : -1
+
+f_zproxy(int len) =>                                             // proxy du Z-Score protégé
+    z = (close - ta.sma(close, len)) / ta.stdev(close, len)
+    z > 0 ? 1 : -1
+
+// ============================================================================================
+//  Blocs par système : états de la bougie en cours ([0]) et de la précédente ([1])
+// ============================================================================================
+b_mtpi2d() =>
+    s1 = f_ewo(5, 32)
+    s2 = f_mtfema(7, 19)
+    s3 = f_zproxy(30)
+    s4 = f_dft(6, 29)
+    s5 = f_wonder(20)
+    s6 = f_maband(20, 5)
+    s7 = f_lnl("Tight")
+    s8 = f_dega(21, 4, 2.0, 12, 40, 1.7, 1.7)
+    [s1, s2, s3, s4, s5, s6, s7, s8, s1[1], s2[1], s3[1], s4[1], s5[1], s6[1], s7[1], s8[1], time_close, time_close[1]]
+
+b_mtpi3d() =>
+    s1 = f_sebastine(9, 6)
+    s2 = f_tci(11, 35, 50, 0.3)
+    [s1, s2, s1[1], s2[1], time_close, time_close[1]]
+
+b_ltpi() =>
+    s1 = f_lnl("Normal")
+    s2 = f_sebastine(9, 10)
+    s3 = f_ewo(4, 26)
+    s4 = f_dft(3, 20)
+    s5 = f_agma(23, 20)
+    s6 = f_tci(40, 60, 60, 0.3)
+    s7 = f_kalman(4.0, 0.01, 4, 1.05)
+    s8 = f_tsg(17)
+    s9 = f_mtfema(12, 6)
+    [s1, s2, s3, s4, s5, s6, s7, s8, s9, s1[1], s2[1], s3[1], s4[1], s5[1], s6[1], s7[1], s8[1], s9[1], time_close, time_close[1]]
+
+b_rot() =>
+    s1 = f_dega(23, 4, 2.0, 21, 40, 1.7, 1.7)
+    s2 = f_sebastine(16, 15)
+    s3 = f_tci(16, 40, 50, 0.3)
+    s4 = f_zproxy(27)
+    s5 = f_wonder(20)
+    [s1, s2, s3, s4, s5, s1[1], s2[1], s3[1], s4[1], s5[1], time_close, time_close[1]]
+
+b_trash() =>
+    s1 = f_dft(14, 14)
+    s2 = f_ewo(7, 26)
+    s3 = f_mtfema(12, 13)
+    s4 = f_tsg(21)
+    s5 = f_kalman(3.0, 0.01, 12, 1.08)
+    [s1, s2, s3, s4, s5, s1[1], s2[1], s3[1], s4[1], s5[1], time_close, time_close[1]]
+
+[m1, m2, m3p, m4, m5, m6, m7, m8, pm1, pm2, pm3p, pm4, pm5, pm6, pm7, pm8, tM2, ptM2] = request.security(TOTAL, "2D", b_mtpi2d())
+[n1, n2, pn1, pn2, tM3, ptM3] = request.security(TOTAL, "3D", b_mtpi3d())
+[l1, l2, l3, l4, l5, l6, l7, l8, l9, pl1, pl2, pl3, pl4, pl5, pl6, pl7, pl8, pl9, tL, ptL] = request.security(TOTAL, "W", b_ltpi())
+[r1, r2, r3, r4, r5, pr1, pr2, pr3, pr4, pr5, tR, ptR] = request.security(ETHBTC, "2D", b_rot())
+[t1, t2, t3, t4, t5, pt1, pt2, pt3, pt4, pt5, tT, ptT] = request.security(OTHD, "3D", b_trash())
+
+// Z-Score réel (optionnel) : lu sur le graphique lui-même
+zExt = zMode == "Valeur > 0" ? (zSrc > 0 ? 1 : -1) : (zSrc >= 0.5 ? 1 : zSrc <= -0.5 ? -1 : 0)
+m3  = zUseExt ? zExt : m3p
+pm3 = zUseExt ? zExt[1] : pm3p
+
+// ============================================================================================
+//  Envoi : un message par système, à la clôture de SA bougie (valeurs définitives)
+// ============================================================================================
+f_kv(string k, int v) => "\"" + k + "\":" + str.tostring(v)
+
+f_msg(string sysName, string tf, string tick, int t, string states) =>
+    "{\"sys\":\"" + sysName + "\",\"tf\":\"" + tf + "\",\"ticker\":\"" + tick + "\",\"time\":" + str.tostring(t, "#") + ",\"states\":{" + states + "}}"
+
+mtpi2dJ(bool cur) =>
+    f_kv("EWO (5 32)", cur ? m1 : pm1) + "," + f_kv("MTF-EMA (7 19)", cur ? m2 : pm2) + "," + f_kv("Z-Score (30 20)", cur ? m3 : pm3) + "," +
+     f_kv("DFT (6 29)", cur ? m4 : pm4) + "," + f_kv("WonderTrend (20)", cur ? m5 : pm5) + "," + f_kv("MA Band (20 5)", cur ? m6 : pm6) + "," +
+     f_kv("LNL (Tight)", cur ? m7 : pm7) + "," + f_kv("DEGA (21..)", cur ? m8 : pm8)
+mtpi3dJ(bool cur) =>
+    f_kv("Sebastine (9 6)", cur ? n1 : pn1) + "," + f_kv("TrendChange (11 35)", cur ? n2 : pn2)
+ltpiJ(bool cur) =>
+    f_kv("LNL (Normal)", cur ? l1 : pl1) + "," + f_kv("Sebastine (9 10)", cur ? l2 : pl2) + "," + f_kv("EWO (4 26)", cur ? l3 : pl3) + "," +
+     f_kv("DFT (3 20)", cur ? l4 : pl4) + "," + f_kv("AGMA (23 20)", cur ? l5 : pl5) + "," + f_kv("TrendChange (40 60)", cur ? l6 : pl6) + "," +
+     f_kv("Kalman Hull (4..)", cur ? l7 : pl7) + "," + f_kv("Trend Strength (17)", cur ? l8 : pl8) + "," + f_kv("MTF-EMA (12 6)", cur ? l9 : pl9)
+rotJ(bool cur) =>
+    f_kv("DEGA (23..)", cur ? r1 : pr1) + "," + f_kv("Sebastine (16 15)", cur ? r2 : pr2) + "," + f_kv("TrendChange (16 40)", cur ? r3 : pr3) + "," +
+     f_kv("Z-Score (27 18)", cur ? r4 : pr4) + "," + f_kv("WonderTrend (def)", cur ? r5 : pr5)
+trashJ(bool cur) =>
+    f_kv("DFT (14 14)", cur ? t1 : pt1) + "," + f_kv("EWO (7 26)", cur ? t2 : pt2) + "," + f_kv("MTF-EMA (12 13)", cur ? t3 : pt3) + "," +
+     f_kv("Trend Strength (21)", cur ? t4 : pt4) + "," + f_kv("Kalman Hull (3..)", cur ? t5 : pt5)
+
+// La bougie HTF se clôture avec la bougie du graphique si leurs heures de clôture coïncident.
+closes(int htfClose) => not na(htfClose) and htfClose == time_close
+
+// Premier passage en temps réel : on envoie tout (dernière bougie close de chaque système)
+// pour remplir le dashboard sans attendre la prochaine clôture hebdomadaire.
+var bool primed = false
+if barstate.isconfirmed and barstate.isrealtime
+    boot = not primed
+    primed := true
+    if closes(tM2) or boot
+        alert(f_msg("MTPI", "2D", "CRYPTOCAP:TOTAL", closes(tM2) ? tM2 : ptM2, mtpi2dJ(closes(tM2))), alert.freq_all)
+    if closes(tM3) or boot
+        alert(f_msg("MTPI", "3D", "CRYPTOCAP:TOTAL", closes(tM3) ? tM3 : ptM3, mtpi3dJ(closes(tM3))), alert.freq_all)
+    if closes(tL) or boot
+        alert(f_msg("LTPI", "W", "CRYPTOCAP:TOTAL", closes(tL) ? tL : ptL, ltpiJ(closes(tL))), alert.freq_all)
+    if closes(tR) or boot
+        alert(f_msg("ROT", "2D", "BINANCE:ETHBTC", closes(tR) ? tR : ptR, rotJ(closes(tR))), alert.freq_all)
+    if closes(tT) or boot
+        alert(f_msg("TRASH", "3D", "CRYPTOCAP:OTHERS.D", closes(tT) ? tT : ptT, trashJ(closes(tT))), alert.freq_all)
+
+// ============================================================================================
+//  Affichage : score MTPI (dernières bougies closes) + tableau des 4 systèmes
+// ============================================================================================
+mtpi  = (pm1 + pm2 + pm3 + pm4 + pm5 + pm6 + pm7 + pm8 + pn1 + pn2) / 10.0
+ltpi  = (pl1 + pl2 + pl3 + pl4 + pl5 + pl6 + pl7 + pl8 + pl9) / 9.0
+rot   = (pr1 + pr2 + pr3 + pr4 + pr5) / 5.0
+trash = (pt1 + pt2 + pt3 + pt4 + pt5) / 5.0
+var int regime = 0
+regime := mtpi > 0.1 ? 1 : mtpi < -0.1 ? -1 : regime
+
+plot(mtpi, "MTPI", color = mtpi > 0.1 ? color.teal : mtpi < -0.1 ? color.red : color.gray, linewidth=2, style=plot.style_stepline)
+hline(0.1,  "Seuil LONG", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+hline(-0.1, "Seuil CASH", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+bgcolor(regime == 1 ? color.new(color.teal, 88) : regime == -1 ? color.new(color.red, 90) : na)
+
+f_col(float v) => v > 0.1 ? color.teal : v < -0.1 ? color.red : color.gray
+var table tb = table.new(position.top_right, 2, 6, bgcolor=color.new(#0E121A, 5), border_width=1, border_color=#232B3A)
+if barstate.islast
+    table.cell(tb, 0, 0, "Régime", text_color=color.white, text_size=size.small)
+    table.cell(tb, 1, 0, regime == 1 ? "LONG" : "CASH", text_color=regime == 1 ? color.teal : color.red, text_size=size.small)
+    table.cell(tb, 0, 1, "MTPI",  text_color=color.silver, text_size=size.small)
+    table.cell(tb, 1, 1, str.tostring(mtpi,  "+0.00;-0.00"), text_color=f_col(mtpi),  text_size=size.small)
+    table.cell(tb, 0, 2, "LTPI",  text_color=color.silver, text_size=size.small)
+    table.cell(tb, 1, 2, str.tostring(ltpi,  "+0.00;-0.00"), text_color=f_col(ltpi),  text_size=size.small)
+    table.cell(tb, 0, 3, "Rotation", text_color=color.silver, text_size=size.small)
+    table.cell(tb, 1, 3, str.tostring(rot,   "+0.00;-0.00") + (rot > 0 ? " ETH" : " BTC"), text_color=f_col(rot), text_size=size.small)
+    table.cell(tb, 0, 4, "Small-caps", text_color=color.silver, text_size=size.small)
+    table.cell(tb, 1, 4, str.tostring(trash, "+0.00;-0.00"), text_color=f_col(trash), text_size=size.small)
+    table.cell(tb, 0, 5, zUseExt ? "Z-Score : réel" : "Z-Score : proxy", text_color=color.gray, text_size=size.tiny)

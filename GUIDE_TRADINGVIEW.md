@@ -1,65 +1,52 @@
 # Brancher TradingView sur le dashboard
 
-TradingView devient la source des signaux : tes vrais indicateurs, sur les vraies
-données CRYPTOCAP. Le script `tradingview/RSPS_Relais.pine` lit leurs états et les
-envoie au relais à chaque clôture de bougie ; le dashboard les affiche (badge **TV**).
+Le script `tradingview/RSPS_TPI_AllInOne.pine` calcule **les 29 indicateurs** de tes 4 systèmes
+directement dans TradingView, à partir du code original des scripts publics, et envoie chaque
+système au relais à la clôture de sa bougie. Le dashboard les affiche (badge **TV**).
 
 ```
-TradingView (tes indicateurs) ──alerte webhook──▶ relais Cloudflare ──▶ dashboard
-                                                        │
-                                  robot GitHub quotidien ┘ archive + compare au moteur Python
+TradingView (1 script, 1 alerte) ──webhook──▶ relais Cloudflare ──▶ dashboard
+                                                     │
+                               robot GitHub quotidien ┘ archive + compare au moteur Python
 ```
 
-## 1. Ajouter le script relais (une fois)
+## 1. Ajouter le script (une fois)
 
-1. TradingView → **Éditeur Pine** → *Ouvrir* → *Nouvel indicateur*.
-2. Colle tout le contenu de `tradingview/RSPS_Relais.pine`, **Enregistrer** sous « RSPS Relais ».
+1. Ouvre un graphique **`CRYPTOCAP:TOTAL`** en **1D** (bougie journalière).
+2. **Éditeur Pine** → *Nouvel indicateur* → **Cmd + A**, **Supprimer** (l'éditeur doit être vide),
+   puis colle tout `RSPS_TPI_AllInOne.pine` → **Enregistrer** → **Ajouter au graphique**.
+3. Le panneau affiche le score MTPI et un tableau : régime, MTPI, LTPI, Rotation, Small-caps.
+   Compare avec ton système habituel.
 
-## 2. Un graphique par système
+Le script va lui-même chercher ETHBTC, OTHERS.D et les timeframes 2D / 3D / hebdo : rien à
+brancher. Pourquoi 1D : les bougies 2D, 3D et hebdo se clôturent toutes un jour donné, le script
+envoie chaque système le jour même de sa clôture (le délai d'exécution compte beaucoup, cf. test
+de robustesse).
 
-| Graphique | Timeframe | Système (réglage du script) | Indicateurs à brancher (nom exact) |
-|---|---|---|---|
-| `CRYPTOCAP:TOTAL` | 2D | MTPI | EWO (5 32) · MTF-EMA (7 19) · Z-Score (30 20) · DFT (6 29) · WonderTrend (20) · MA Band (20 5) · LNL (Tight) · DEGA (21..) |
-| `CRYPTOCAP:TOTAL` | 3D | MTPI | Sebastine (9 6) · TrendChange (11 35) |
-| `CRYPTOCAP:TOTAL` | 1W | LTPI | LNL (Normal) · Sebastine (9 10) · EWO (4 26) · DFT (3 20) · AGMA (23 20) · TrendChange (40 60) · Kalman Hull (4..) · Trend Strength (17) · MTF-EMA (12 6) |
-| `BINANCE:ETHBTC` | 2D | ROT | DEGA (23..) · Sebastine (16 15) · TrendChange (16 40) · Z-Score (27 18) · WonderTrend (def) |
-| `CRYPTOCAP:OTHERS.D` | 3D | TRASH | DFT (14 14) · EWO (7 26) · MTF-EMA (12 13) · Trend Strength (21) · Kalman Hull (3..) |
+## 2. Créer l'alerte (une seule)
 
-Les deux instances MTPI (2D et 3D) sont fusionnées par le relais : le score MTPI est la
-moyenne des 10 indicateurs, exactement comme dans `strategy.py`.
+1. **Alerte** (en haut) → **Condition** : `RSPS TPI` → **`Any alert() function call`**.
+2. **Expiration** : *Illimitée*.
+3. **Notifications** → coche **Webhook URL** → colle l'adresse du fichier `SECRET.txt`.
+4. **Créer**.
 
-Sur chaque graphique :
+Au premier passage (à la clôture journalière suivante), le script envoie les 4 systèmes ;
+ensuite, chacun à la clôture de sa propre bougie. Les cartes du dashboard passent de **Py** à **TV**.
 
-1. Ajoute tes indicateurs habituels, avec leurs réglages.
-2. Ajoute **RSPS Relais**, puis ouvre ses paramètres :
-   - **Système** : celui du tableau.
-   - Pour chaque indicateur : coche la case, écris le **nom exact** du tableau (il sert à
-     comparer avec le moteur Python), choisis dans **Source** la sortie de l'indicateur
-     (la ligne ou l'histogramme qui porte son signal), et la **Lecture** :
-     - `Valeur > 0` : oscillateur / histogramme, positif = haussier ;
-     - `Prix > ligne` : ligne de tendance (supertrend, bande…), prix au-dessus = haussier ;
-     - `État ±1` : l'indicateur sort déjà 1 / -1.
-     - `Inverser` si le sens est à l'envers.
-3. Vérifie le petit tableau en haut à droite : chaque indicateur doit afficher le même
-   état (+1 / -1) que sa couleur sur le graphique. **C'est l'étape la plus importante.**
+## Limite : Z-Score Deviation Fusion
 
-> Si un indicateur ne sort qu'une couleur (aucune valeur exploitable dans *Source*), il
-> faut ajouter un `plot()` de son état dans son code, ou le signaler pour qu'on l'adapte.
-
-## 3. Créer l'alerte (une par graphique)
-
-1. Clic droit sur le graphique → **Ajouter une alerte**.
-2. **Condition** : `RSPS Relais` → **`Any alert() function call`**.
-3. **Expiration** : *Illimitée* (sinon l'alerte s'arrête sans prévenir).
-4. Onglet **Notifications** → coche **Webhook URL** et colle l'adresse du relais
-   (fichier `relay/SECRET.txt` sur ton Mac, de la forme `https://rsps-relay…workers.dev/hook/…`).
-5. Le message est généré par le script : ne le modifie pas.
-
-À la clôture de bougie suivante, la carte correspondante du dashboard passe de **Py** à **TV**.
+Cet indicateur (RAKIQUANT) est **protégé** : son code n'est pas public. Il est remplacé par un
+z-score standard (MTPI 30 20 et Rotation 27 18), soit 2 indicateurs sur 29.
+Pour le MTPI, tu peux utiliser le vrai : graphique TOTAL en **2D**, ajoute Z-Score Deviation
+Fusion (30 20), puis dans les paramètres de RSPS TPI coche « utiliser le vrai Z-Score » et choisis
+sa sortie dans **Source Z-Score**.
 
 ## Vérifier
 
-- `https://<relais>/state` : état combiné reçu de TradingView.
-- `https://<relais>/log` : dernières alertes reçues.
-- Chaque nuit, le robot GitHub ajoute les états TradingView à `seed/parity.csv` :
-  le score de fiabilité du moteur Python se remplit tout seul.
+- `https://rsps-relay.timothekintgen1.workers.dev/state` : état combiné reçu de TradingView.
+- `https://rsps-relay.timothekintgen1.workers.dev/log` : dernières alertes reçues.
+- Chaque nuit, le robot GitHub ajoute les états TradingView à `seed/parity.csv` : le score de
+  fiabilité du moteur Python se remplit tout seul.
+
+`tradingview/RSPS_Relais.pine` (branchement manuel indicateur par indicateur) reste disponible
+si tu préfères utiliser tes propres instances d'indicateurs.
