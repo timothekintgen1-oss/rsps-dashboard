@@ -5,7 +5,7 @@
 // Voir GUIDE_TRADINGVIEW.md.
 indicator("RSPS Relais", overlay=false, max_labels_count=1)
 
-sys = input.string("MTPI", "Système", options=["MTPI", "LTPI", "ROT", "TRASH"],
+sysName = input.string("MTPI", "Système", options=["MTPI", "LTPI", "ROT", "TRASH"],
      tooltip="MTPI et LTPI sur CRYPTOCAP:TOTAL, ROT sur ETHBTC, TRASH sur OTHERS.D. Les instances MTPI 2D et 3D sont fusionnées par le relais.")
 
 // Lecture possibles de la sortie d'un indicateur :
@@ -16,8 +16,8 @@ f_state(float src, string mode, bool inv) =>
     float s = mode == "Valeur > 0" ? (src > 0 ? 1 : -1) : mode == "Prix > ligne" ? (close > src ? 1 : -1) : (src >= 0.5 ? 1 : src <= -0.5 ? -1 : 0)
     na(src) ? na : inv ? -s : s
 
-f_add(string json, bool on, string lab, float st) =>
-    on and not na(st) ? json + (str.length(json) > 0 ? "," : "") + "\"" + lab + "\":" + str.tostring(int(st)) : json
+f_add(string json, bool isOn, string lab, float st) =>
+    isOn and not na(st) ? json + (str.length(json) > 0 ? "," : "") + "\"" + lab + "\":" + str.tostring(int(st)) : json
 
 // --- 10 emplacements -----------------------------------------------------------
 on1  = input.bool(false, "", inline="a1", group="Indicateur 1")
@@ -96,36 +96,36 @@ sts  = array.from(st1, st2, st3, st4, st5, st6, st7, st8, st9, st10)
 labs = array.from(lab1, lab2, lab3, lab4, lab5, lab6, lab7, lab8, lab9, lab10)
 ons  = array.from(on1, on2, on3, on4, on5, on6, on7, on8, on9, on10)
 
-float sum = 0.0
-int n = 0
+float scoreSum = 0.0
+int cnt = 0
 string parts = ""
 for i = 0 to 9
     float s = array.get(sts, i)
     if array.get(ons, i) and not na(s)
-        sum += s
-        n += 1
+        scoreSum += s
+        cnt += 1
         parts := f_add(parts, true, array.get(labs, i), s)
-score = n > 0 ? sum / n : na
+score = cnt > 0 ? scoreSum / cnt : na
 
 // --- affichage ----------------------------------------------------------------------
 plot(score, "Score", color = score > 0.1 ? color.teal : score < -0.1 ? color.red : color.gray, linewidth=2, style=plot.style_stepline)
 hline(0.1, "Seuil haut", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
 hline(-0.1, "Seuil bas", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
 
-var table t = table.new(position.top_right, 2, 12, bgcolor=color.new(#0E121A, 5), border_width=1, border_color=#232B3A)
+var table tbl = table.new(position.top_right, 2, 12, bgcolor=color.new(#0E121A, 5), border_width=1, border_color=#232B3A)
 if barstate.islast
-    table.cell(t, 0, 0, sys + " · " + timeframe.period, text_color=color.white, text_size=size.small)
-    table.cell(t, 1, 0, na(score) ? "—" : str.tostring(score, "+0.00;-0.00"), text_color=score > 0 ? color.teal : color.red, text_size=size.small)
+    table.cell(tbl, 0, 0, sysName + " · " + timeframe.period, text_color=color.white, text_size=size.small)
+    table.cell(tbl, 1, 0, na(score) ? "—" : str.tostring(score, "+0.00;-0.00"), text_color=score > 0 ? color.teal : color.red, text_size=size.small)
     for i = 0 to 9
         float s = array.get(sts, i)
-        bool on = array.get(ons, i)
-        table.cell(t, 0, i + 1, on ? array.get(labs, i) : "", text_color=color.silver, text_size=size.tiny)
-        table.cell(t, 1, i + 1, on ? (na(s) ? "na" : s > 0 ? "+1" : s < 0 ? "-1" : "0") : "",
+        bool isOn = array.get(ons, i)
+        table.cell(tbl, 0, i + 1, isOn ? array.get(labs, i) : "", text_color=color.silver, text_size=size.tiny)
+        table.cell(tbl, 1, i + 1, isOn ? (na(s) ? "na" : s > 0 ? "+1" : s < 0 ? "-1" : "0") : "",
              text_color=na(s) ? color.gray : s > 0 ? color.teal : color.red, text_size=size.tiny)
 
 // --- webhook : une fois par bougie clôturée ------------------------------------------
-if barstate.isconfirmed and n > 0
-    msg = "{\"sys\":\"" + sys + "\",\"tf\":\"" + timeframe.period + "\",\"ticker\":\"" + syminfo.tickerid +
+if barstate.isconfirmed and cnt > 0
+    msg = "{\"sys\":\"" + sysName + "\",\"tf\":\"" + timeframe.period + "\",\"ticker\":\"" + syminfo.tickerid +
          "\",\"time\":" + str.tostring(time_close) + ",\"score\":" + str.tostring(score, "0.####") +
          ",\"states\":{" + parts + "}}"
     alert(msg, alert.freq_once_per_bar_close)
