@@ -66,6 +66,8 @@ def run(series):
     # equity normalisée à 100, sous-échantillonnée (~180 pts) pour le JSON
     step = max(1, len(idx) // 180)
     sidx = idx[::step]
+    if sidx[-1] != idx[-1]:
+        sidx = sidx.append(idx[-1:])          # garde le dernier point (= métriques)
     out_curves = {}
     for k, r in curves.items():
         nav = (1 + r).cumprod() * 100
