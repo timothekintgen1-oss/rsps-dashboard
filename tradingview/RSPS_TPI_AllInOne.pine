@@ -269,22 +269,35 @@ trashJ(bool cur) =>
 // La bougie HTF se clôture avec la bougie du graphique si leurs heures de clôture coïncident.
 closes(int htfClose) => not na(htfClose) and htfClose == time_close
 
-// Premier passage en temps réel : on envoie tout (dernière bougie close de chaque système)
-// pour remplir le dashboard sans attendre la prochaine clôture hebdomadaire.
-var bool primed = false
+// À chaque clôture du graphique, on envoie la DERNIÈRE bougie close de chaque système si elle
+// n'a pas encore été envoyée : fonctionne quelle que soit la timeframe du graphique (1D conseillé,
+// 2D fonctionne avec au plus 1 jour de retard sur les bougies 3D), et remplit tout au 1er passage.
+var int sM2 = na
+var int sM3 = na
+var int sL = na
+var int sR = na
+var int sT = na
 if barstate.isconfirmed and barstate.isrealtime
-    boot = not primed
-    primed := true
-    if closes(tM2) or boot
-        alert(f_msg("MTPI", "2D", "CRYPTOCAP:TOTAL", closes(tM2) ? tM2 : ptM2, mtpi2dJ(closes(tM2))), alert.freq_all)
-    if closes(tM3) or boot
-        alert(f_msg("MTPI", "3D", "CRYPTOCAP:TOTAL", closes(tM3) ? tM3 : ptM3, mtpi3dJ(closes(tM3))), alert.freq_all)
-    if closes(tL) or boot
-        alert(f_msg("LTPI", "W", "CRYPTOCAP:TOTAL", closes(tL) ? tL : ptL, ltpiJ(closes(tL))), alert.freq_all)
-    if closes(tR) or boot
-        alert(f_msg("ROT", "2D", "BINANCE:ETHBTC", closes(tR) ? tR : ptR, rotJ(closes(tR))), alert.freq_all)
-    if closes(tT) or boot
-        alert(f_msg("TRASH", "3D", "CRYPTOCAP:OTHERS.D", closes(tT) ? tT : ptT, trashJ(closes(tT))), alert.freq_all)
+    cM2 = closes(tM2) ? tM2 : ptM2
+    if not na(cM2) and cM2 != sM2
+        alert(f_msg("MTPI", "2D", "CRYPTOCAP:TOTAL", cM2, mtpi2dJ(closes(tM2))), alert.freq_all)
+        sM2 := cM2
+    cM3 = closes(tM3) ? tM3 : ptM3
+    if not na(cM3) and cM3 != sM3
+        alert(f_msg("MTPI", "3D", "CRYPTOCAP:TOTAL", cM3, mtpi3dJ(closes(tM3))), alert.freq_all)
+        sM3 := cM3
+    cL = closes(tL) ? tL : ptL
+    if not na(cL) and cL != sL
+        alert(f_msg("LTPI", "W", "CRYPTOCAP:TOTAL", cL, ltpiJ(closes(tL))), alert.freq_all)
+        sL := cL
+    cR = closes(tR) ? tR : ptR
+    if not na(cR) and cR != sR
+        alert(f_msg("ROT", "2D", "BINANCE:ETHBTC", cR, rotJ(closes(tR))), alert.freq_all)
+        sR := cR
+    cT = closes(tT) ? tT : ptT
+    if not na(cT) and cT != sT
+        alert(f_msg("TRASH", "3D", "CRYPTOCAP:OTHERS.D", cT, trashJ(closes(tT))), alert.freq_all)
+        sT := cT
 
 // ============================================================================================
 //  Affichage : score MTPI (dernières bougies closes) + tableau des 4 systèmes
