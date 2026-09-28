@@ -11,6 +11,7 @@ STATE_JSON = os.path.join(STATE_DIR, "state.json")
 HISTORY = os.path.join(STATE_DIR, "history.csv")
 DOCS_JSON = os.path.join(HERE, "docs", "state.json")   # copie pour GitHub Pages
 PARITY = os.path.join(HERE, "seed", "parity.csv")
+CONFIG = os.path.join(HERE, "docs", "config.json")     # {"relay": "https://…workers.dev"}
 
 
 def notify(msg):
@@ -25,9 +26,38 @@ def notify(msg):
         print(f"[notify] échec : {e}")
 
 
+def sync_tradingview():
+    """Récupère les signaux TradingView (relais Cloudflare) : archive docs/tv_state.json
+    et ajoute chaque état reçu à seed/parity.csv -> la réciprocité s'alimente seule."""
+    try:
+        relay = json.load(open(CONFIG)).get("relay", "").rstrip("/")
+    except Exception:
+        relay = ""
+    if not relay:
+        return
+    import requests
+    try:
+        tv = requests.get(relay + "/state", timeout=30).json()
+    except Exception as e:
+        print(f"[tv] relais injoignable : {e}"); return
+    if not tv.get("date"):
+        print("[tv] aucun signal TradingView reçu pour l'instant"); return
+    json.dump(tv, open(os.path.join(HERE, "docs", "tv_state.json"), "w"), indent=2, ensure_ascii=False)
+    rows = [{"date": v["date"], "block": sys, "label": lab, "state": st}
+            for sys, info in tv.get("systems", {}).items()
+            for v in info.get("tfs", {}).values()
+            for lab, st in v.get("states", {}).items()]
+    if rows:
+        old = pd.read_csv(PARITY) if os.path.exists(PARITY) else pd.DataFrame(columns=["date","block","label","state"])
+        allp = pd.concat([old, pd.DataFrame(rows)]).drop_duplicates(["date","block","label"], keep="last")
+        allp.sort_values(["date","block","label"]).to_csv(PARITY, index=False)
+    print(f"[tv] {tv['date']}  {tv.get('regime')}  MTPI={tv.get('mtpi')}  ({len(rows)} états archivés)")
+
+
 def main():
     os.makedirs(STATE_DIR, exist_ok=True)
     os.makedirs(os.path.join(HERE, "docs"), exist_ok=True)
+    sync_tradingview()
     series = ds.get_series()
     res = st.evaluate(series["total"], series.get("ethbtc"), series.get("others_d"))
 

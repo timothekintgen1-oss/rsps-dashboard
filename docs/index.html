@@ -113,6 +113,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .ind .s.p{background:rgba(45,212,167,.14);color:var(--up)} .ind .s.n{background:rgba(240,101,122,.14);color:var(--dn)} .ind .s.z{background:var(--s3);color:var(--t3)}
 .more{font-size:11.5px;color:var(--t3);margin-top:10px;text-align:center}
 .sys.gated{opacity:.55}
+.src{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;margin-left:8px;padding:2px 6px;border-radius:5px;vertical-align:2px}
+.src.tv{background:rgba(45,212,167,.12);color:var(--up)} .src.py{background:var(--s3);color:var(--t3)}
 
 /* performance */
 .perf{padding:22px 22px 18px}
@@ -145,6 +147,41 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .kgrid b{display:block;font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--t1);font-weight:600;margin-top:2px}
 .bench{font-size:11.5px;color:var(--t3);margin-top:10px}
 .bench b{color:var(--t2);font-family:'JetBrains Mono',monospace;font-weight:500}
+
+
+/* robustesse */
+.rob{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.rob{grid-template-columns:1fr}}
+.rc{padding:20px 20px 16px}
+.rc h3{font-size:15px;font-weight:700}
+.rc .q{font-size:12.5px;color:var(--t3);margin:2px 0 14px}
+.verdict{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--t2)}
+.verdict .ic{flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:800}
+.verdict .ic.ok{background:rgba(45,212,167,.14);color:var(--up)} .verdict .ic.ko{background:rgba(240,101,122,.14);color:var(--dn)} .verdict .ic.mid{background:rgba(232,177,76,.14);color:var(--gold)}
+.hbar{display:grid;grid-template-columns:120px 1fr 56px;align-items:center;gap:10px;font-size:12px;margin:5px 0}
+.hbar .l{color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .v{font-family:'JetBrains Mono',monospace;text-align:right;font-size:11.5px}
+.hbar .tr{position:relative;height:14px}
+.hbar .tr .z{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--line2)}
+.hbar .tr i{position:absolute;top:2px;height:10px;border-radius:3px}
+.yr{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin:6px 0;font-size:12px}
+.yr .y{font-family:'JetBrains Mono',monospace;color:var(--t2)}
+.yr .bars{display:flex;flex-direction:column;gap:3px}
+.yr .b{position:relative;height:9px}
+.yr .b i{position:absolute;top:0;height:9px;border-radius:3px}
+.yr .b span{position:absolute;top:-2px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t2);white-space:nowrap}
+.yr .b .z{position:absolute;left:35%;top:-2px;bottom:-2px;width:1px;background:var(--line2)}
+.strip{position:relative;height:64px;margin:6px 4px 0}
+.strip i{position:absolute;bottom:18px;width:6px;height:6px;border-radius:50%;background:var(--eth);opacity:.6;transform:translateX(-50%)}
+.strip .base{position:absolute;bottom:12px;top:0;width:2px;background:var(--up);transform:translateX(-50%)}
+.strip .base span{position:absolute;top:-2px;left:6px;font-size:10.5px;color:var(--up);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.strip .ax{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3)}
+.lags{display:flex;gap:10px;align-items:flex-end;height:120px;margin-top:8px}
+.lags div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;font-size:11px;color:var(--t3)}
+.lags i{width:100%;max-width:70px;border-radius:6px 6px 3px 3px}
+.lags b{font-family:'JetBrains Mono',monospace;color:var(--t1);font-size:13px}
+.lg2{display:flex;gap:14px;font-size:11.5px;color:var(--t3);margin-bottom:6px}
+.lg2 span{display:flex;align-items:center;gap:6px}.lg2 i{width:10px;height:10px;border-radius:3px}
 
 /* bottom */
 .bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-top:16px}
@@ -237,6 +274,10 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
     </div>
   </section>
 
+
+  <div class="sh" id="robH" style="display:none"><div><h2>Test de robustesse</h2><p id="robSub">—</p></div></div>
+  <section class="rob" id="rob"></section>
+
   <div class="foot">Mis à jour automatiquement chaque jour à 00 h 15 UTC par le bot RSPS. Indicateurs portés depuis tes scripts Pine, la Voie A (alertes TradingView) fait foi.<br>Document de travail interne. Ne constitue pas un conseil en investissement.</div>
 </div>
 
@@ -287,10 +328,10 @@ function renderHero(){
 
 /* ---------- systems ---------- */
 const SYS=[
-  {key:'mtpi',t:'MTPI',st:'Tendance moyen terme',s:'states',ends:['Baissier','Haussier']},
-  {key:'ltpi',t:'LTPI',st:'Tendance long terme · 9 ind.',s:'ltpi_states',ends:['Bear','Bull']},
-  {key:'rotation',t:'Rotation',st:'ETH contre BTC',s:'rot_states',ends:['BTC','ETH'],kind:'rot'},
-  {key:'trash',t:'Small-caps',st:'OTHERS.D · overlay',s:'trash_states',ends:['Off','On'],kind:'trash'},
+  {sys:'MTPI',key:'mtpi',t:'MTPI',st:'Tendance moyen terme',s:'states',ends:['Baissier','Haussier']},
+  {sys:'LTPI',key:'ltpi',t:'LTPI',st:'Tendance long terme · 9 ind.',s:'ltpi_states',ends:['Bear','Bull']},
+  {sys:'ROT',key:'rotation',t:'Rotation',st:'ETH contre BTC',s:'rot_states',ends:['BTC','ETH'],kind:'rot'},
+  {sys:'TRASH',key:'trash',t:'Small-caps',st:'OTHERS.D · overlay',s:'trash_states',ends:['Off','On'],kind:'trash'},
 ];
 function arc(cx,cy,r,a0,a1){const P=a=>[cx+r*Math.cos(a),cy+r*Math.sin(a)];const[x0,y0]=P(a0),[x1,y1]=P(a1);
   return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;}
@@ -319,7 +360,7 @@ function renderSystems(){
     const gated=g.kind==='trash'&&!long; if(gated)tn='neu';
     const inds=Object.entries(st).map(([k,x])=>`<div class="ind"><span title="${esc(k)}">${esc(k)}</span><span class="s ${x>0?'p':x<0?'n':'z'}">${x>0?'+1':x<0?'−1':'0'}</span></div>`).join('');
     return `<div class="card sys fade ${gated?'gated':''}" style="animation-delay:${.12+i*.05}s" onclick="this.classList.toggle('open')">
-      <div class="sys-h"><div><h3>${g.t}</h3><small>${g.st}</small></div><span class="badge ${tn}">${badge}</span></div>
+      <div class="sys-h"><div><h3>${g.t}<span class="src ${(S._src||{})[g.sys]||'py'}">${(S._src||{})[g.sys]==='tv'?'TV':'Py'}</span></h3><small>${g.st}</small></div><span class="badge ${tn}">${badge}</span></div>
       <div class="gauge">${gauge(v,i)}<div class="val"><b style="color:${gated?C.neu:col(v)}">${sgn(v)}</b></div></div>
       <div class="gauge" style="margin-top:0"><div class="ends"><span>${g.ends[0]}</span><span>${g.ends[1]}</span></div></div>
       <div class="split">${up?`<i style="flex:${up};background:${C.up}"></i>`:''}${z?`<i style="flex:${z};background:${C.neu}"></i>`:''}${dn?`<i style="flex:${dn};background:${C.dn}"></i>`:''}</div>
@@ -419,19 +460,79 @@ function renderRecip(){
 /* ---------- freshness ---------- */
 function renderLive(){
   const d=new Date(S.date+'T00:00:00Z'), days=Math.floor((Date.now()-d)/864e5);
-  const fresh=days<=2;
+  const tv=S._src.MTPI==='tv', fresh=days<=(tv?4:2);
   $('live').classList.toggle('off',!fresh);
-  $('liveTxt').innerHTML=`Dernier calcul : <b class="mono">${new Date(S.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</b>`;
-  if(!fresh){$('warn').classList.add('show');$('warn').textContent=`⚠ Données vieilles de ${days} jours. Vérifie que le bot quotidien tourne bien (onglet Actions sur GitHub).`;}
+  $('liveTxt').innerHTML=`${tv?'TradingView':'Moteur Python'} · <b class="mono">${new Date(S.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</b>`;
+  if(!fresh){$('warn').classList.add('show');$('warn').textContent=`⚠ Données vieilles de ${days} jours. ${tv?'Vérifie tes alertes TradingView (elles expirent parfois).':'Vérifie que le bot quotidien tourne bien (onglet Actions sur GitHub).'}`;}
+}
+
+
+/* ---------- robustesse ---------- */
+function renderRob(R){
+  $('robH').style.display='';
+  $('robSub').textContent=`Stratégie RSPS cash, historique réel ${R.start.slice(0,4)} → ${R.as_of} (sans données comblées). Calculé avec le moteur Python.`;
+  const verdict=(cls,ic,t)=>`<div class="verdict"><span class="ic ${cls}">${ic}</span><span>${t}</span></div>`;
+  // 1. réglages
+  const P=R.params, lo=Math.min(...P.sharpe,R.base.sharpe)-.05, hi=Math.max(...P.sharpe,R.base.sharpe)+.05, X=v=>((v-lo)/(hi-lo)*100);
+  const cnt={}; const dots=P.sharpe.map(v=>{const k=Math.round(X(v)/2.5);cnt[k]=(cnt[k]||0)+1;return `<i style="left:${X(v)}%;bottom:${12+cnt[k]*7}px"></i>`;}).join('');
+  const pc=P.base_pctile, pOk=pc<=80;
+  const c1=`<div class="card rc"><h3>Tes réglages sont-ils « trop parfaits » ?</h3><p class="q">${P.n} variantes, chaque paramètre bougé de ±25 % au hasard · Sharpe de chaque variante</p>
+    <div class="strip">${dots}<div class="base" style="left:${X(R.base.sharpe)}%"><span>ta spec ${R.base.sharpe}</span></div>
+    <div class="ax"><span>${lo.toFixed(2)}</span><span>Sharpe</span><span>${hi.toFixed(2)}</span></div></div>
+    ${verdict(pOk?'ok':'ko',pOk?'✓':'!',pOk?`<b>Non.</b> Ta spec tombe au ${pc}<sup>e</sup> centile : les variantes voisines font aussi bien. Le résultat ne dépend pas d'un réglage chanceux.`:`<b>Attention.</b> Ta spec est au ${pc}<sup>e</sup> centile : presque toutes les variantes font moins bien. Signe de sur-ajustement.`)}</div>`;
+  // 2. indicateurs
+  const L=R.leave_one_out, m=Math.max(.05,...L.map(d=>Math.abs(d.delta_sharpe)));
+  const bars=L.map(d=>{const w=Math.abs(d.delta_sharpe)/m*50, c=d.delta_sharpe>0.02?C.dn:d.delta_sharpe<-0.02?C.up:C.neu;
+    return `<div class="hbar"><span class="l" title="${esc(d.label)}">${esc(d.label)}</span><span class="tr"><span class="z"></span><i style="background:${c};${d.delta_sharpe>=0?`left:50%`:`right:50%`};width:${w}%"></i></span><span class="v">${d.delta_sharpe>0?'+':''}${d.delta_sharpe.toFixed(2)}</span></div>`;}).join('');
+  const useless=L.filter(d=>d.delta_sharpe>=0).length, S5=R.subsets5, med5=S5.sharpe[Math.floor(S5.sharpe.length/2)];
+  const c2=`<div class="card rc"><h3>Chaque indicateur est-il utile ?</h3><p class="q">Variation du Sharpe si on retire l'indicateur du MTPI · <span style="color:${C.dn}">rouge</span> = mieux sans lui</p>${bars}
+    ${verdict(useless>=5?'mid':'ok',useless>=5?'~':'✓',`<b>${useless} indicateurs sur ${L.length}</b> n'apportent rien (on fait aussi bien ou mieux sans eux). 5 indicateurs pris au hasard donnent un Sharpe médian de <b>${med5.toFixed(2)}</b> contre ${R.base.sharpe} avec les 10 : ton MTPI est <b>redondant</b>, il peut être simplifié.`)}</div>`;
+  // 3. par année (échelle log des rendements)
+  const yrs=R.periods.filter(p=>/^\d{4}$/.test(p.period)), lr=v=>Math.log(1+v/100), mx=Math.max(...yrs.flatMap(p=>[Math.abs(lr(p.rsps)),Math.abs(lr(p.btc))]));
+  const Z=35, sc=v=>{const l=lr(v);return l>=0?{left:Z,w:l/mx*(100-Z-18)}:{left:Z-(-l/mx*Z),w:-l/mx*Z};};
+  const bar=(v,c)=>{const g=sc(v);return `<div class="b"><span class="z"></span><i style="left:${g.left}%;width:${Math.max(.5,g.w)}%;background:${c}"></i><span style="left:${v>=0?g.left+g.w+1:g.left+g.w+1}%">${v>0?'+':''}${Math.round(v)} %</span></div>`;};
+  const rows=yrs.map(p=>`<div class="yr"><span class="y">${p.period}</span><div class="bars">${bar(p.rsps,C.up)}${bar(p.btc,C.neu)}</div></div>`).join('');
+  const h=R.periods.filter(p=>p.period.includes('–')), beat=yrs.filter(p=>p.rsps>p.btc).length;
+  const c3=`<div class="card rc"><h3>La performance vient-elle d'une seule période ?</h3><p class="q">Rendement par année · échelle logarithmique</p>
+    <div class="lg2"><span><i style="background:${C.up}"></i>RSPS</span><span><i style="background:${C.neu}"></i>BTC conservé</span></div>${rows}
+    ${verdict('mid','~',`RSPS bat BTC <b>${beat} années sur ${yrs.length}</b> : il limite fortement les années baissières, mais rate une partie des hausses (2023–2024). ${h.length==2?`L'essentiel du gain date de ${h[0].period} (<b>${h[0].rsps>0?'+':''}${Math.round(h[0].rsps)} %</b>) ; depuis ${h[1].period.slice(0,4)} : <b>${h[1].rsps>0?'+':''}${Math.round(h[1].rsps)} %</b> vs BTC ${h[1].btc>0?'+':''}${Math.round(h[1].btc)} %.`:''}`)}</div>`;
+  // 4. exécution
+  const E=R.execution.filter(d=>d.fee_x===1), mE=Math.max(...E.map(d=>d.sharpe)), f5=R.execution.find(d=>d.lag===1&&d.fee_x===5);
+  const c4=`<div class="card rc"><h3>Et si j'exécute en retard ?</h3><p class="q">Sharpe selon le délai entre le signal et l'ordre (1 barre = 2 jours)</p>
+    <div class="lags">${E.map(d=>`<div><b>${d.sharpe.toFixed(2)}</b><i style="height:${d.sharpe/mE*80}%;background:${d.lag===1?C.up:d.lag===2?C.gold:C.dn}"></i><span>${d.lag} barre${d.lag>1?'s':''}</span></div>`).join('')}</div>
+    ${verdict('ko','!',`<b>Le délai compte beaucoup</b> : une barre de retard en plus fait passer le Sharpe de ${E[0].sharpe} à ${E[1].sharpe}. Les frais, eux, pèsent peu (×5 → ${f5.sharpe}). Exécute le jour du signal, d'où l'intérêt des alertes TradingView.`)}</div>`;
+  $('rob').innerHTML=c1+c2+c3+c4;
+}
+
+/* ---------- TradingView (relais) prioritaire, moteur Python en secours ---------- */
+const TVMAP={MTPI:['mtpi','states'],LTPI:['ltpi','ltpi_states'],ROT:['rotation','rot_states'],TRASH:['trash','trash_states']};
+function mergeTV(py,tv){
+  const r={...py,_src:{}};
+  for(const sys in TVMAP){const [k,sk]=TVMAP[sys], info=(tv.systems||{})[sys];
+    if(info&&info.score!=null){r[k]=info.score;r[sk]=tv[sk]||{};r._src[sys]='tv';} else r._src[sys]='py';}
+  if(r._src.MTPI==='tv'){r.regime=tv.regime;r.date=tv.date;}
+  const long=r.regime==='LONG', eth=r.rotation!=null&&r.rotation>0;
+  r.majeur=eth?'ETH':'BTC'; r.small_caps=long&&r.trash!=null&&r.trash>0;
+  r.alloc=(long?(eth?'LONG · ETH 80 / BTC 20':'LONG · BTC 80 / ETH 20'):'CASH · Dominant Denominator')+(r.small_caps?'  + small-caps ≤20%':'');
+  return r;
+}
+async function getTV(){
+  try{
+    const cfg=await fetch('./config.json',{cache:'no-store'}).then(r=>r.ok?r.json():{});
+    if(!cfg.relay) return null;
+    const tv=await fetch(cfg.relay.replace(/\/$/,'')+'/state',{cache:'no-store'}).then(r=>r.ok?r.json():null);
+    return tv&&tv.date?tv:null;
+  }catch(e){return null;}
 }
 
 async function load(){
   try{
-    const [a,b]=await Promise.all(['state.json','backtest.json'].map(f=>fetch('./'+f,{cache:'no-store'}).then(r=>r.ok?r.json():null)));
+    const [a,b,tv]=await Promise.all([...['state.json','backtest.json'].map(f=>fetch('./'+f,{cache:'no-store'}).then(r=>r.ok?r.json():null)),getTV()]);
     if(!a) throw 0;
-    S=a; B=b;
+    S=tv?mergeTV(a,tv):{...a,_src:{MTPI:'py',LTPI:'py',ROT:'py',TRASH:'py'}}; B=b;
     renderLive(); renderHero(); renderSystems(); renderRecip();
     if(B&&B.curves) renderPerf();
+    fetch('./robustness.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(R=>R&&renderRob(R)).catch(()=>{});
   }catch(e){
     $('liveTxt').textContent='Données indisponibles';
     $('warn').classList.add('show');

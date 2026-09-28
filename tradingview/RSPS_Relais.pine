@@ -1,0 +1,131 @@
+//@version=6
+// RSPS Relais — lit l'état (+1 / -1) de tes indicateurs et l'envoie par webhook
+// à chaque clôture de bougie. Une instance par graphique / timeframe :
+//   TOTAL 2D (MTPI) · TOTAL 3D (MTPI) · TOTAL W (LTPI) · ETHBTC 2D (ROT) · OTHERS.D 3D (TRASH)
+// Voir GUIDE_TRADINGVIEW.md.
+indicator("RSPS Relais", overlay=false, max_labels_count=1)
+
+sys = input.string("MTPI", "Système", options=["MTPI", "LTPI", "ROT", "TRASH"],
+     tooltip="MTPI et LTPI sur CRYPTOCAP:TOTAL, ROT sur ETHBTC, TRASH sur OTHERS.D. Les instances MTPI 2D et 3D sont fusionnées par le relais.")
+
+// Lecture possibles de la sortie d'un indicateur :
+//   "Valeur > 0"      oscillateur / histogramme : positif = haussier
+//   "Prix > ligne"    ligne de tendance (supertrend, bande…) : prix au-dessus = haussier
+//   "État ±1"         l'indicateur sort déjà 1 / -1 (ou 0)
+f_state(float src, string mode, bool inv) =>
+    float s = mode == "Valeur > 0" ? (src > 0 ? 1 : -1) : mode == "Prix > ligne" ? (close > src ? 1 : -1) : (src >= 0.5 ? 1 : src <= -0.5 ? -1 : 0)
+    na(src) ? na : inv ? -s : s
+
+f_add(string json, bool on, string lab, float st) =>
+    on and not na(st) ? json + (str.length(json) > 0 ? "," : "") + "\"" + lab + "\":" + str.tostring(int(st)) : json
+
+// --- 10 emplacements -----------------------------------------------------------
+on1  = input.bool(false, "", inline="a1", group="Indicateur 1")
+lab1 = input.string("Indicateur 1", "Nom exact", inline="a1", group="Indicateur 1")
+src1 = input.source(close, "Source", inline="b1", group="Indicateur 1")
+mod1 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b1", group="Indicateur 1")
+inv1 = input.bool(false, "Inverser", inline="b1", group="Indicateur 1")
+
+on2  = input.bool(false, "", inline="a2", group="Indicateur 2")
+lab2 = input.string("Indicateur 2", "Nom exact", inline="a2", group="Indicateur 2")
+src2 = input.source(close, "Source", inline="b2", group="Indicateur 2")
+mod2 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b2", group="Indicateur 2")
+inv2 = input.bool(false, "Inverser", inline="b2", group="Indicateur 2")
+
+on3  = input.bool(false, "", inline="a3", group="Indicateur 3")
+lab3 = input.string("Indicateur 3", "Nom exact", inline="a3", group="Indicateur 3")
+src3 = input.source(close, "Source", inline="b3", group="Indicateur 3")
+mod3 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b3", group="Indicateur 3")
+inv3 = input.bool(false, "Inverser", inline="b3", group="Indicateur 3")
+
+on4  = input.bool(false, "", inline="a4", group="Indicateur 4")
+lab4 = input.string("Indicateur 4", "Nom exact", inline="a4", group="Indicateur 4")
+src4 = input.source(close, "Source", inline="b4", group="Indicateur 4")
+mod4 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b4", group="Indicateur 4")
+inv4 = input.bool(false, "Inverser", inline="b4", group="Indicateur 4")
+
+on5  = input.bool(false, "", inline="a5", group="Indicateur 5")
+lab5 = input.string("Indicateur 5", "Nom exact", inline="a5", group="Indicateur 5")
+src5 = input.source(close, "Source", inline="b5", group="Indicateur 5")
+mod5 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b5", group="Indicateur 5")
+inv5 = input.bool(false, "Inverser", inline="b5", group="Indicateur 5")
+
+on6  = input.bool(false, "", inline="a6", group="Indicateur 6")
+lab6 = input.string("Indicateur 6", "Nom exact", inline="a6", group="Indicateur 6")
+src6 = input.source(close, "Source", inline="b6", group="Indicateur 6")
+mod6 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b6", group="Indicateur 6")
+inv6 = input.bool(false, "Inverser", inline="b6", group="Indicateur 6")
+
+on7  = input.bool(false, "", inline="a7", group="Indicateur 7")
+lab7 = input.string("Indicateur 7", "Nom exact", inline="a7", group="Indicateur 7")
+src7 = input.source(close, "Source", inline="b7", group="Indicateur 7")
+mod7 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b7", group="Indicateur 7")
+inv7 = input.bool(false, "Inverser", inline="b7", group="Indicateur 7")
+
+on8  = input.bool(false, "", inline="a8", group="Indicateur 8")
+lab8 = input.string("Indicateur 8", "Nom exact", inline="a8", group="Indicateur 8")
+src8 = input.source(close, "Source", inline="b8", group="Indicateur 8")
+mod8 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b8", group="Indicateur 8")
+inv8 = input.bool(false, "Inverser", inline="b8", group="Indicateur 8")
+
+on9  = input.bool(false, "", inline="a9", group="Indicateur 9")
+lab9 = input.string("Indicateur 9", "Nom exact", inline="a9", group="Indicateur 9")
+src9 = input.source(close, "Source", inline="b9", group="Indicateur 9")
+mod9 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b9", group="Indicateur 9")
+inv9 = input.bool(false, "Inverser", inline="b9", group="Indicateur 9")
+
+on10  = input.bool(false, "", inline="a10", group="Indicateur 10")
+lab10 = input.string("Indicateur 10", "Nom exact", inline="a10", group="Indicateur 10")
+src10 = input.source(close, "Source", inline="b10", group="Indicateur 10")
+mod10 = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "Prix > ligne", "État ±1"], inline="b10", group="Indicateur 10")
+inv10 = input.bool(false, "Inverser", inline="b10", group="Indicateur 10")
+
+// --- états ------------------------------------------------------------------------
+st1  = on1  ? f_state(src1,  mod1,  inv1)  : na
+st2  = on2  ? f_state(src2,  mod2,  inv2)  : na
+st3  = on3  ? f_state(src3,  mod3,  inv3)  : na
+st4  = on4  ? f_state(src4,  mod4,  inv4)  : na
+st5  = on5  ? f_state(src5,  mod5,  inv5)  : na
+st6  = on6  ? f_state(src6,  mod6,  inv6)  : na
+st7  = on7  ? f_state(src7,  mod7,  inv7)  : na
+st8  = on8  ? f_state(src8,  mod8,  inv8)  : na
+st9  = on9  ? f_state(src9,  mod9,  inv9)  : na
+st10 = on10 ? f_state(src10, mod10, inv10) : na
+
+sts  = array.from(st1, st2, st3, st4, st5, st6, st7, st8, st9, st10)
+labs = array.from(lab1, lab2, lab3, lab4, lab5, lab6, lab7, lab8, lab9, lab10)
+ons  = array.from(on1, on2, on3, on4, on5, on6, on7, on8, on9, on10)
+
+float sum = 0.0
+int n = 0
+string parts = ""
+for i = 0 to 9
+    float s = array.get(sts, i)
+    if array.get(ons, i) and not na(s)
+        sum += s
+        n += 1
+        parts := f_add(parts, true, array.get(labs, i), s)
+score = n > 0 ? sum / n : na
+
+// --- affichage ----------------------------------------------------------------------
+plot(score, "Score", color = score > 0.1 ? color.teal : score < -0.1 ? color.red : color.gray, linewidth=2, style=plot.style_stepline)
+hline(0.1, "Seuil haut", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+hline(-0.1, "Seuil bas", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+
+var table t = table.new(position.top_right, 2, 12, bgcolor=color.new(#0E121A, 5), border_width=1, border_color=#232B3A)
+if barstate.islast
+    table.cell(t, 0, 0, sys + " · " + timeframe.period, text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 0, na(score) ? "—" : str.tostring(score, "+0.00;-0.00"), text_color=score > 0 ? color.teal : color.red, text_size=size.small)
+    for i = 0 to 9
+        float s = array.get(sts, i)
+        bool on = array.get(ons, i)
+        table.cell(t, 0, i + 1, on ? array.get(labs, i) : "", text_color=color.silver, text_size=size.tiny)
+        table.cell(t, 1, i + 1, on ? (na(s) ? "na" : s > 0 ? "+1" : s < 0 ? "-1" : "0") : "",
+             text_color=na(s) ? color.gray : s > 0 ? color.teal : color.red, text_size=size.tiny)
+
+// --- webhook : une fois par bougie clôturée ------------------------------------------
+if barstate.isconfirmed and n > 0
+    msg = "{\"sys\":\"" + sys + "\",\"tf\":\"" + timeframe.period + "\",\"ticker\":\"" + syminfo.tickerid +
+         "\",\"time\":" + str.tostring(time_close) + ",\"score\":" + str.tostring(score, "0.####") +
+         ",\"states\":{" + parts + "}}"
+    alert(msg, alert.freq_once_per_bar_close)

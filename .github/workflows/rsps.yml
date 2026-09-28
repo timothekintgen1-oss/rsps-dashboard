@@ -28,6 +28,9 @@ jobs:
           NOTIFY:   change       # 'always' pour notifier à chaque run
         run: python runner.py
 
+      - name: Robustesse
+        run: python robustness.py || echo "robustesse : échec, on garde la version précédente"
+
       - name: Commit state
         run: |
           git config user.name  "rsps-bot"
