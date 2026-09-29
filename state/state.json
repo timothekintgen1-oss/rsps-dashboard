@@ -1,6 +1,6 @@
 {
   "date": "2026-09-29",
-  "mtpi": 0.4,
+  "mtpi": 1.0,
   "regime": "LONG",
   "rotation": 0.6,
   "majeur": "ETH",
@@ -12,13 +12,13 @@
     "EWO (5 32)": 1,
     "MTF-EMA (7 19)": 1,
     "Sebastine (9 6)": 1,
-    "Z-Score (22 15)": -1,
+    "Z-Score (22 15)": 1,
     "DFT (6 29)": 1,
     "WonderTrend (20)": 1,
     "TrendChange (11 35)": 1,
     "MA Band (20 5)": 1,
-    "LNL (Tight)": -1,
-    "DEGA (21..)": -1
+    "LNL (Tight)": 1,
+    "DEGA (21..)": 1
   },
   "rot_states": {
     "DEGA (23..)": 1,

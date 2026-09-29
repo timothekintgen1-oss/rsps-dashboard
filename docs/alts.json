@@ -30,7 +30,7 @@
         "vs_eth": 0.8,
         "usd": 1.0
       },
-      "price": 1.1778
+      "price": 1.1776
     },
     {
       "ticker": "TAO",
@@ -49,7 +49,7 @@
         "vs_eth": 0.4,
         "usd": 1.0
       },
-      "price": 315.1
+      "price": 315.4
     },
     {
       "ticker": "AVAX",
@@ -68,7 +68,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 11.86
+      "price": 11.867
     },
     {
       "ticker": "AAVE",
@@ -87,7 +87,7 @@
         "vs_eth": 0.6,
         "usd": 1.0
       },
-      "price": 171.35
+      "price": 172.43
     },
     {
       "ticker": "AERO",
@@ -106,7 +106,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 0.8242
+      "price": 0.826
     },
     {
       "ticker": "FET",
@@ -125,7 +125,7 @@
         "vs_eth": 0.4,
         "usd": 1.0
       },
-      "price": 0.2338
+      "price": 0.2341
     },
     {
       "ticker": "LINK",
@@ -144,7 +144,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 15.318
+      "price": 15.352
     },
     {
       "ticker": "ONDO",
@@ -163,7 +163,7 @@
         "vs_eth": 0.4,
         "usd": 0.6
       },
-      "price": 0.5237
+      "price": 0.524
     },
     {
       "ticker": "RENDER",
@@ -182,7 +182,7 @@
         "vs_eth": -0.2,
         "usd": 1.0
       },
-      "price": 1.971
+      "price": 1.973
     },
     {
       "ticker": "SOL",
@@ -201,7 +201,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 120.05
+      "price": 120.13
     },
     {
       "ticker": "TON",
@@ -239,7 +239,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 4.886
+      "price": 4.898
     },
     {
       "ticker": "HYPE",
@@ -258,7 +258,7 @@
         "vs_eth": 0.6,
         "usd": 1.0
       },
-      "price": 88.529
+      "price": 88.762
     },
     {
       "ticker": "UNI",
@@ -277,7 +277,7 @@
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 9.142
+      "price": 9.178
     },
     {
       "ticker": "ADA",
@@ -296,7 +296,7 @@
         "vs_eth": -0.2,
         "usd": 1.0
       },
-      "price": 0.2529
+      "price": 0.2532
     },
     {
       "ticker": "XRP",
@@ -315,7 +315,7 @@
         "vs_eth": -0.6,
         "usd": 1.0
       },
-      "price": 1.5167
+      "price": 1.5176
     },
     {
       "ticker": "DOGE",
@@ -334,7 +334,7 @@
         "vs_eth": -1.0,
         "usd": 1.0
       },
-      "price": 0.09568
+      "price": 0.09578
     },
     {
       "ticker": "BNB",
@@ -353,7 +353,7 @@
         "vs_eth": -1.0,
         "usd": 1.0
       },
-      "price": 765.87
+      "price": 766.15
     }
   ]
 }
