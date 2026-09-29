@@ -1,20 +1,25 @@
 """
-strategy.py — Spec calibrée RSPS + calcul régime/rotation/trash + réciprocité.
-Paramètres validés en parité vs relevés TradingView (8/10 exacts ; DEGA exact ;
-WonderTrend = PSAR approché ; Z-Score = proxy 30/20). Voir README.
+strategy.py — Spec RSPS alignée sur le classeur « RSPS _ Mugiwara no Luffy.xlsx » + calcul
+régime / rotation / trash + réciprocité.
+  Page 2 TOTAL      : MTPI 10 indicateurs, LONG si > 0,1, CASH si < 0,1 (0,1 pile : inchangé)
+  Page 3 ETHBTC     : ETH 80 / BTC 20 si > 0, sinon BTC 80 / ETH 20
+  Page 4 OTHERS.D   : trash autorisé si > 0, au plus 20 % du portefeuille (× force du signal)
+  Page 5 Trash table: voir alts.py
+Z-Score Deviation Fusion est protégé sur TradingView : proxy z-score standard ici.
 """
 import pandas as pd
 import indicators as I
 
-ENTRY = 0.10   # LONG si MTPI > ENTRY
-EXIT  = 0.10   # CASH si MTPI < EXIT
+ENTRY = 0.10    # LONG si MTPI > 0,1
+EXIT  = -0.10   # CASH si MTPI < 0,1 (build_tpi teste score < -exit) — règle de sortie du classeur
+TRASH_MAX = 0.20  # page 4 : 20 % max du portefeuille en trash
 
 # --- MTPI : CRYPTOCAP:TOTAL (2D / 3D) ---------------------------------------
 MTPI_SPEC = [
     {"label": "EWO (5 32)",          "name": "elliott_wave_osc",       "tf": "2D", "params": {"fast": 5, "slow": 32}},
     {"label": "MTF-EMA (7 19)",      "name": "mtf_ema_stoch",          "tf": "2D", "params": {"ema_fast": 7, "ema_slow": 19}},
     {"label": "Sebastine (9 6)",     "name": "sebastine_trend_catcher","tf": "3D", "params": {"len1": 9, "len2": 6}},
-    {"label": "Z-Score (30 20)",     "name": "z_score_deviation",      "tf": "2D", "params": {"len_dev": 30, "len_sig": 20}},
+    {"label": "Z-Score (22 15)",     "name": "z_score_deviation",      "tf": "2D", "params": {"len_dev": 22, "len_sig": 15}},
     {"label": "DFT (6 29)",          "name": "dft_overlay",            "tf": "2D", "params": {"N": 6, "smoothing": 29}},
     {"label": "WonderTrend (20)",    "name": "wondertrend",            "tf": "2D", "params": {"length": 20}},
     {"label": "TrendChange (11 35)", "name": "trend_change_indicator", "tf": "3D", "params": {"fast": 11, "slow": 35, "atr_len": 50, "trend_margin": 0.3}},
@@ -42,32 +47,6 @@ TRASH_SPEC = [
 ]
 
 
-# --- LTPI : Weekly (9 techniques reproductibles ; 5 on-chain non inclus) -----
-LTPI_SPEC = [
-    {"label": "LNL (Normal)",        "name": "lnl_trend_system",       "tf": "W", "params": {"trend_mode": "Normal"}},
-    {"label": "Sebastine (9 10)",    "name": "sebastine_trend_catcher","tf": "W", "params": {"len1": 9, "len2": 10}},
-    {"label": "EWO (4 26)",          "name": "elliott_wave_osc",       "tf": "W", "params": {"fast": 4, "slow": 26}},
-    {"label": "DFT (3 20)",          "name": "dft_overlay",            "tf": "W", "params": {"N": 3, "smoothing": 20}},
-    {"label": "AGMA (23 20 1)",      "name": "agma",                   "tf": "W", "params": {"length": 23, "vol_period": 20, "sigma_fixed": 1.0}},
-    {"label": "TrendChange (40 60)", "name": "trend_change_indicator", "tf": "W", "params": {"fast": 40, "slow": 60, "atr_len": 60, "trend_margin": 0.3}},
-    {"label": "Kalman Hull (4..)",   "name": "kalman_hull_st",         "tf": "W", "params": {"meas_noise": 4, "proc_noise": 0.01, "atr_period": 4, "factor": 1.05}},
-    {"label": "Trend Strength (17)", "name": "trend_strength_gauge",   "tf": "W", "params": {"length": 17}},
-    {"label": "MTF-EMA (12 6)",      "name": "mtf_ema_stoch",          "tf": "W", "params": {"ema_fast": 12, "ema_slow": 6}},
-]
-
-
-# --- LTPI : TOTAL Weekly (proxy technique 9/14 — 5 on-chain non reproductibles) ---
-LTPI_SPEC = [
-    {"label": "LNL (Normal)",        "name": "lnl_trend_system",       "tf": "W", "params": {"trend_mode": "Normal"}},
-    {"label": "Sebastine (9 10)",    "name": "sebastine_trend_catcher","tf": "W", "params": {"len1": 9, "len2": 10}},
-    {"label": "EWO (4 26)",          "name": "elliott_wave_osc",       "tf": "W", "params": {"fast": 4, "slow": 26}},
-    {"label": "DFT (3 20)",          "name": "dft_overlay",            "tf": "W", "params": {"N": 3, "smoothing": 20}},
-    {"label": "AGMA (23 20)",        "name": "agma",                   "tf": "W", "params": {"length": 23, "vol_period": 20}},
-    {"label": "TrendChange (40 60)", "name": "trend_change_indicator", "tf": "W", "params": {"fast": 40, "slow": 60, "atr_len": 60, "trend_margin": 0.3}},
-    {"label": "Kalman Hull (4..)",   "name": "kalman_hull_st",         "tf": "W", "params": {"meas_noise": 4, "proc_noise": 0.01, "atr_period": 4, "factor": 1.05}},
-    {"label": "Trend Strength (17)", "name": "trend_strength_gauge",   "tf": "W", "params": {"length": 17}},
-    {"label": "MTF-EMA (12 6)",      "name": "mtf_ema_stoch",          "tf": "W", "params": {"ema_fast": 12, "ema_slow": 6}},
-]
 
 
 def _bar_open(idx, ndays, origin="2018-01-01"):
@@ -90,16 +69,16 @@ def evaluate(total, ethbtc, others_d=None):
 
     rot, rot_states = _block_last(ethbtc, ROT_SPEC)
     trash, trash_states = _block_last(others_d, TRASH_SPEC)
-    ltpi, ltpi_states = _block_last(total, LTPI_SPEC)
     eth_over = (rot == rot and rot > 0)       # rot==rot : non-NaN
     small_ok = (trash == trash and trash > 0)
+    trash_pct = round(TRASH_MAX * trash, 4) if (reg == 1 and small_ok) else 0.0
 
     if reg == 1:
         alloc = "LONG · ETH 80 / BTC 20" if eth_over else "LONG · BTC 80 / ETH 20"
     else:
         alloc = "CASH · Dominant Denominator"
     if reg == 1 and small_ok:
-        alloc += "  + small-caps ≤20%"
+        alloc += f"  + trash {trash_pct:.0%}"
 
     d = pd.DatetimeIndex([last])
     return {
@@ -110,12 +89,11 @@ def evaluate(total, ethbtc, others_d=None):
         "majeur": "ETH" if eth_over else "BTC",
         "trash": None if trash != trash else round(trash, 4),
         "small_caps": bool(reg == 1 and small_ok),
-        "ltpi": None if ltpi != ltpi else round(ltpi, 4),
+        "trash_pct": trash_pct,
         "alloc": alloc,
         "states": {k: int(round(v)) for k, v in mat.loc[last].items()},
         "rot_states": rot_states,
         "trash_states": trash_states,
-        "ltpi_states": ltpi_states,
         "new_bars": {"2D": bool(_bar_open(d, 2)[0]),
                      "3D": bool(_bar_open(d, 3)[0]),
                      "W":  last.weekday() == 0},
@@ -123,7 +101,7 @@ def evaluate(total, ethbtc, others_d=None):
 
 
 # ---------------------------------------------------------------- réciprocité
-SPEC_BY_BLOCK = {"MTPI": (MTPI_SPEC, "total"), "LTPI": (LTPI_SPEC, "total"), "ROT": (ROT_SPEC, "ethbtc"), "TRASH": (TRASH_SPEC, "others_d")}
+SPEC_BY_BLOCK = {"MTPI": (MTPI_SPEC, "total"), "ROT": (ROT_SPEC, "ethbtc"), "TRASH": (TRASH_SPEC, "others_d")}
 
 
 def reciprocity(parity_df, series):

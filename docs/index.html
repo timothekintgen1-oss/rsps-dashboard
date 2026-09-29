@@ -84,7 +84,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .sh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:34px 2px 14px}
 .sh h2{font-size:20px;font-weight:700;letter-spacing:-.015em}
 .sh p{font-size:12.5px;color:var(--t3)}
-.systems{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+.systems{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
 @media(max-width:1000px){.systems{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.systems{grid-template-columns:1fr}}
 .sys{padding:18px 18px 16px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .2s,transform .2s}
@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .split-l{display:flex;justify-content:space-between;font-size:11px;color:var(--t3)}
 .split-l b{font-weight:600}
 .inds{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);flex-direction:column;gap:6px}
-.sys.open .inds{display:flex}
+.inds{display:flex!important}
 .ind{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--t2);gap:8px}
 .ind span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ind .s{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;width:28px;text-align:center;border-radius:5px;padding:1px 0;flex:none}
@@ -183,6 +183,24 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .lg2{display:flex;gap:14px;font-size:11.5px;color:var(--t3);margin-bottom:6px}
 .lg2 span{display:flex;align-items:center;gap:6px}.lg2 i{width:10px;height:10px;border-radius:3px}
 
+/* capital + alts */
+.cap{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--t3)}
+.cap input{all:unset;width:110px;padding:6px 10px;border-radius:8px;background:var(--s1);border:1px solid var(--line2);color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right}
+.li .e{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t3);width:86px;text-align:right}
+.alts{padding:8px 0 4px;overflow-x:auto}
+.atab{width:100%;border-collapse:collapse;min-width:640px;font-size:13px}
+.atab th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-weight:500;padding:10px 12px;text-align:center;border-bottom:1px solid var(--line)}
+.atab th:first-child,.atab td:first-child{text-align:left}
+.atab td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+.atab tr.sel{background:rgba(199,125,255,.07)}
+.atab .tk{font-weight:700;display:flex;align-items:center;gap:8px}
+.atab .tk i{width:8px;height:8px;border-radius:50%}
+.pill{display:inline-grid;place-items:center;width:30px;height:22px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.pill.p{background:rgba(45,212,167,.15);color:var(--up)} .pill.n{background:var(--s3);color:var(--t3)}
+.dots5{display:inline-flex;gap:3px}.dots5 i{width:9px;height:9px;border-radius:2px;background:var(--s3)}.dots5 i.on{background:var(--sc)}
+.wt{font-family:'JetBrains Mono',monospace;font-weight:600}
+.alts-note{font-size:12px;color:var(--t3);padding:12px 4px 0}
+
 /* bottom */
 .bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-top:16px}
 @media(max-width:820px){.bottom{grid-template-columns:1fr}}
@@ -237,17 +255,21 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
     </div>
 
     <div class="card alloc fade" style="animation-delay:.08s">
-      <div class="k">Allocation cible</div>
+      <div class="k">Exposition cible</div>
       <div class="alloc-body">
         <div class="donut"><svg viewBox="0 0 42 42" id="donut"></svg><div class="c" id="donutC"></div></div>
         <div class="legend" id="allocLg"></div>
       </div>
       <div class="note" id="allocTxt"></div>
+      <label class="cap">Capital <input id="capital" inputmode="numeric" value="20000"> €</label>
     </div>
   </section>
 
-  <div class="sh"><div><h2>Les 4 systèmes</h2><p>Chaque jauge = moyenne des signaux (−1 à +1). Clique sur une carte pour voir le détail des indicateurs.</p></div></div>
+  <div class="sh"><div><h2>Les 3 boussoles</h2><p>Pages 2 à 4 de ton classeur · chaque jauge = moyenne des signaux (−1 à +1)</p></div></div>
   <section class="systems" id="systems"></section>
+
+  <div class="sh" id="altsH" style="display:none"><div><h2>Sélection des alts</h2><p id="altsSub">Page 5 de ton classeur</p></div></div>
+  <section class="card alts" id="alts" style="display:none"></section>
 
   <div class="sh"><div><h2>Performance du backtest</h2><p>Base 100 · frais 0,045 % par transaction · signaux décalés d'un jour</p></div></div>
   <section class="card perf">
@@ -308,30 +330,40 @@ function renderHero(){
   $('tfs').innerHTML='<span class="k" style="margin-right:4px">Nouvelle bougie</span>'+
     ['2D','3D','W'].map(t=>`<span class="chip ${nb[t]?'on':''}">${t}</span>`).join('');
 
-  // allocation
-  let parts, center, txt=S.alloc||'';
-  if(long){
-    const maj=(S.majeur||'ETH').toUpperCase(), min=maj==='ETH'?'BTC':'ETH';
-    parts=[[maj,80,C[maj.toLowerCase()]],[min,20,C[min.toLowerCase()]]];
-    center=[`${maj}`,'majeur'];
-  }else{ parts=[['Cash / stable',100,C.neu]]; center=['Cash','100 %']; }
+  // exposition par actif (fractions) + montants selon le capital saisi
+  const ex=S.exposure||(long?{[S.majeur||'ETH']:0.8,[(S.majeur==='BTC')?'ETH':'BTC']:0.2}:{CASH:1});
+  const cap=getCap();
+  const ALT=['#C77DFF','#B388FF','#E07BF0','#9D7BFF','#D59BFF','#A86BFF','#F09BE0','#8F6BFF','#C9A0FF','#E0A0FF'];
+  let ai=0;
+  const parts=Object.entries(ex).filter(([,w])=>w>0).sort((a,b)=>b[1]-a[1])
+    .map(([k,w])=>[k==='CASH'?'Cash / stable':k,w,k==='ETH'?C.eth:k==='BTC'?C.btc:k==='CASH'?C.neu:ALT[ai++%ALT.length]]);
   const circ=2*Math.PI*15.915; let off=0, d=`<circle cx="21" cy="21" r="15.915" fill="none" stroke="${C.line}" stroke-width="5"/>`;
-  parts.forEach(([n,p,c])=>{const len=p/100*circ, gap=parts.length>1?0.6:0;
+  parts.forEach(([n,w,c])=>{const len=w*circ, gap=parts.length>1?0.5:0;
     d+=`<circle cx="21" cy="21" r="15.915" fill="none" stroke="${c}" stroke-width="5" stroke-dasharray="${Math.max(0,len-gap)} ${circ}" stroke-dashoffset="${-off}"/>`;off+=len;});
   $('donut').innerHTML=d;
-  $('donutC').innerHTML=`<div><b>${center[0]}</b><span>${center[1]}</span></div>`;
-  let lg=parts.map(([n,p,c])=>`<div class="li"><i class="sw" style="background:${c}"></i><span class="n">${n}</span><span class="p">${p} %</span></div>`).join('');
-  if(long) lg+=`<div class="li opt"><i class="sw" style="background:${S.small_caps?C.sc:C.line}"></i><span class="n">Small-caps</span><span class="p">${S.small_caps?'≤ 20 %':'off'}</span></div>`;
+  const alts=parts.filter(([n])=>!['ETH','BTC','Cash / stable'].includes(n));
+  $('donutC').innerHTML=long?`<div><b>${esc(S.majeur||'ETH')}</b><span>majeur${alts.length?` + ${alts.length} alts`:''}</span></div>`:`<div><b>Cash</b><span>100 %</span></div>`;
+  const eur=w=>Math.round(w*cap).toLocaleString('fr-FR')+' €';
+  const row=([n,w,c],cls='')=>`<div class="li ${cls}"><i class="sw" style="background:${c}"></i><span class="n">${esc(n)}</span><span class="e">${eur(w)}</span><span class="p">${(w*100).toFixed(w<0.1?1:0)} %</span></div>`;
+  const majors=parts.filter(p=>!alts.includes(p));
+  let lg=majors.map(p=>row(p)).join('');
+  if(alts.length){const tw=alts.reduce((a,p)=>a+p[1],0);
+    lg+=`<div class="li opt"><i class="sw" style="background:${C.sc}"></i><span class="n">Alts (trash)</span><span class="e">${eur(tw)}</span><span class="p">${Math.round(tw*100)} %</span></div>`;
+    lg+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px">${alts.map(([n,w,c])=>`<span class="chip" style="border-color:${c};color:var(--t1)">${esc(n)} ${(w*100).toFixed(1)}%</span>`).join('')}</div>`;}
+  else if(long) lg+=`<div class="li opt"><i class="sw" style="background:${C.line}"></i><span class="n">Alts (trash)</span><span class="e">—</span><span class="p">off</span></div>`;
   $('allocLg').innerHTML=lg;
-  $('allocTxt').textContent=txt;
+  $('allocTxt').textContent=S.alloc||'';
 }
+function getCap(){let v=20000;try{v=+(localStorage.getItem('rsps_cap')||20000)}catch(e){}return v>0?v:20000;}
+$('capital').value=getCap().toLocaleString('fr-FR');
+$('capital').onchange=e=>{const v=+String(e.target.value).replace(/[^\d]/g,'');try{localStorage.setItem('rsps_cap',v)}catch(_){}
+  e.target.value=(v||20000).toLocaleString('fr-FR');if(S)renderHero();};
 
 /* ---------- systems ---------- */
 const SYS=[
-  {sys:'MTPI',key:'mtpi',t:'MTPI',st:'Tendance moyen terme',s:'states',ends:['Baissier','Haussier']},
-  {sys:'LTPI',key:'ltpi',t:'LTPI',st:'Tendance long terme · 9 ind.',s:'ltpi_states',ends:['Bear','Bull']},
-  {sys:'ROT',key:'rotation',t:'Rotation',st:'ETH contre BTC',s:'rot_states',ends:['BTC','ETH'],kind:'rot'},
-  {sys:'TRASH',key:'trash',t:'Small-caps',st:'OTHERS.D · overlay',s:'trash_states',ends:['Off','On'],kind:'trash'},
+  {sys:'MTPI',key:'mtpi',t:'TOTAL',st:'Le marché monte-t-il ? · MTPI',s:'states',ends:['CASH','LONG']},
+  {sys:'ROT',key:'rotation',t:'ETHBTC',st:'Quel majeur ? · 80 / 20',s:'rot_states',ends:['BTC','ETH'],kind:'rot'},
+  {sys:'TRASH',key:'trash',t:'OTHERS.D',st:'Place aux alts ? · 20 % max',s:'trash_states',ends:['Off','On'],kind:'trash'},
 ];
 function arc(cx,cy,r,a0,a1){const P=a=>[cx+r*Math.cos(a),cy+r*Math.sin(a)];const[x0,y0]=P(a0),[x1,y1]=P(a1);
   return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;}
@@ -355,18 +387,18 @@ function renderSystems(){
     const up=vals.filter(x=>x>0).length, dn=vals.filter(x=>x<0).length, z=vals.length-up-dn;
     let badge, tn=tone(v);
     if(g.kind==='rot') badge=v>0?'ETH domine':v<0?'BTC domine':'Neutre';
-    else if(g.kind==='trash') badge=S.small_caps?'Actif':(long?'Inactif':'Coupé · CASH');
-    else badge=v>0.1?'Haussier':v<-0.1?'Baissier':'Neutre';
+    else if(g.kind==='trash') badge=S.small_caps||S.trash_pct>0?`Alts ${Math.round((S.trash_pct||0.2)*100)} %`:(long?'Alts OFF':'Coupé · CASH');
+    else badge=long?'LONG':'CASH';
     const gated=g.kind==='trash'&&!long; if(gated)tn='neu';
     const inds=Object.entries(st).map(([k,x])=>`<div class="ind"><span title="${esc(k)}">${esc(k)}</span><span class="s ${x>0?'p':x<0?'n':'z'}">${x>0?'+1':x<0?'−1':'0'}</span></div>`).join('');
-    return `<div class="card sys fade ${gated?'gated':''}" style="animation-delay:${.12+i*.05}s" onclick="this.classList.toggle('open')">
+    return `<div class="card sys fade ${gated?'gated':''}" style="animation-delay:${.12+i*.05}s" >
       <div class="sys-h"><div><h3>${g.t}<span class="src ${(S._src||{})[g.sys]||'py'}">${(S._src||{})[g.sys]==='tv'?'TV':'Py'}</span></h3><small>${g.st}</small></div><span class="badge ${tn}">${badge}</span></div>
       <div class="gauge">${gauge(v,i)}<div class="val"><b style="color:${gated?C.neu:col(v)}">${sgn(v)}</b></div></div>
       <div class="gauge" style="margin-top:0"><div class="ends"><span>${g.ends[0]}</span><span>${g.ends[1]}</span></div></div>
       <div class="split">${up?`<i style="flex:${up};background:${C.up}"></i>`:''}${z?`<i style="flex:${z};background:${C.neu}"></i>`:''}${dn?`<i style="flex:${dn};background:${C.dn}"></i>`:''}</div>
       <div class="split-l"><span><b style="color:${C.up}">${up}</b> haussiers</span><span><b style="color:${C.dn}">${dn}</b> baissiers</span></div>
       <div class="inds">${inds}</div>
-      <div class="more">${vals.length} indicateurs · détail ▾</div>
+
     </div>`;}).join('');
 }
 
@@ -504,16 +536,41 @@ function renderRob(R){
   $('rob').innerHTML=c1+c2+c3+c4;
 }
 
+/* ---------- sélection des alts (page 5) ---------- */
+function renderAlts(A){
+  if(!A||!A.tokens) return;
+  $('altsH').style.display='';$('alts').style.display='';
+  const long=(S.regime||'')==='LONG', w=(S.exposure||{});
+  $('altsSub').innerHTML=`Page 5 de ton classeur · 5 filtres, retenu si score ≥ <b>${A.threshold}</b> · poids égaux dans la part trash · données du ${esc(A.date)}`;
+  const F=[['mcap','MCap < méd.','Market cap sous la médiane de la liste'],['beta','Bêta','Bêta vs BTC au-dessus de la médiane'],
+           ['vs_btc','vs BTC','TOKEN/BTC en tendance haussière (2D)'],['vs_eth','vs ETH','TOKEN/ETH en tendance haussière (2D)'],['usd','USD','TOKEN/USD en tendance haussière (2D)']];
+  const rows=A.tokens.map(t=>{const sel=A.selected.includes(t.ticker), ww=w[t.ticker];
+    return `<tr class="${sel?'sel':''}"><td><span class="tk"><i style="background:${sel?C.sc:C.line}"></i>${esc(t.ticker)}</span></td>`+
+      F.map(([k,,tip])=>`<td title="${tip}${k==='beta'&&t.beta!=null?' · '+t.beta:''}${t.tpi&&t.tpi[k]!=null?' · TPI '+t.tpi[k]:''}"><span class="pill ${t.filters[k]?'p':'n'}">${t.filters[k]?'1':'0'}</span></td>`).join('')+
+      `<td><span class="dots5">${[0,1,2,3,4].map(i=>`<i class="${i<t.score?'on':''}"></i>`).join('')}</span> <b class="wt">${t.score}</b></td>`+
+      `<td class="wt" style="color:${ww?C.sc:C.t3}">${ww?(ww*100).toFixed(1)+' %':sel?(long?'—':'CASH'):''}</td></tr>`;}).join('');
+  $('alts').innerHTML=`<table class="atab"><thead><tr><th>Token</th>${F.map(f=>`<th title="${f[2]}">${f[1]}</th>`).join('')}<th>Score</th><th>Poids</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="alts-note">${A.selected.length} token(s) retenu(s). ${S.trash_pct>0?`OTHERS.D haussier : ${Math.round(S.trash_pct*100)} % du portefeuille réparti à parts égales.`:`OTHERS.D non haussier${long?'':' ou régime CASH'} : aucune allocation aux alts pour l'instant, la table reste indicative.`}</p>`;
+}
+
 /* ---------- TradingView (relais) prioritaire, moteur Python en secours ---------- */
-const TVMAP={MTPI:['mtpi','states'],LTPI:['ltpi','ltpi_states'],ROT:['rotation','rot_states'],TRASH:['trash','trash_states']};
-function mergeTV(py,tv){
+const TVMAP={MTPI:['mtpi','states'],ROT:['rotation','rot_states'],TRASH:['trash','trash_states']};
+function exposureOf(r,A){
+  if(r.regime!=='LONG') return {CASH:1};
+  const sel=(A&&A.selected)||[], trash=sel.length?(r.trash_pct||0):0, cons=1-trash;
+  const maj=r.majeur==='BTC'?'BTC':'ETH', mino=maj==='ETH'?'BTC':'ETH', ex={[maj]:0.8*cons,[mino]:0.2*cons};
+  sel.forEach(t=>ex[t]=trash/sel.length); return ex;
+}
+function mergeTV(py,tv,A){
   const r={...py,_src:{}};
   for(const sys in TVMAP){const [k,sk]=TVMAP[sys], info=(tv.systems||{})[sys];
     if(info&&info.score!=null){r[k]=info.score;r[sk]=tv[sk]||{};r._src[sys]='tv';} else r._src[sys]='py';}
   if(r._src.MTPI==='tv'){r.regime=tv.regime;r.date=tv.date;}
   const long=r.regime==='LONG', eth=r.rotation!=null&&r.rotation>0;
   r.majeur=eth?'ETH':'BTC'; r.small_caps=long&&r.trash!=null&&r.trash>0;
-  r.alloc=(long?(eth?'LONG · ETH 80 / BTC 20':'LONG · BTC 80 / ETH 20'):'CASH · Dominant Denominator')+(r.small_caps?'  + small-caps ≤20%':'');
+  r.trash_pct=r.small_caps?Math.round(0.2*r.trash*1e4)/1e4:0;
+  r.alloc=(long?(eth?'LONG · ETH 80 / BTC 20':'LONG · BTC 80 / ETH 20'):'CASH · Dominant Denominator')+(r.small_caps?`  + trash ${Math.round(r.trash_pct*100)}%`:'');
+  r.exposure=exposureOf(r,A);
   return r;
 }
 async function getTV(){
@@ -527,10 +584,10 @@ async function getTV(){
 
 async function load(){
   try{
-    const [a,b,tv]=await Promise.all([...['state.json','backtest.json'].map(f=>fetch('./'+f,{cache:'no-store'}).then(r=>r.ok?r.json():null)),getTV()]);
+    const [a,b,A,tv]=await Promise.all([...['state.json','backtest.json','alts.json'].map(f=>fetch('./'+f,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)),getTV()]);
     if(!a) throw 0;
-    S=tv?mergeTV(a,tv):{...a,_src:{MTPI:'py',LTPI:'py',ROT:'py',TRASH:'py'}}; B=b;
-    renderLive(); renderHero(); renderSystems(); renderRecip();
+    S=tv?mergeTV(a,tv,A):{...a,_src:{MTPI:'py',ROT:'py',TRASH:'py'},exposure:a.exposure||exposureOf(a,A)}; B=b;
+    renderLive(); renderHero(); renderSystems(); renderAlts(A); renderRecip();
     if(B&&B.curves) renderPerf();
     fetch('./robustness.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(R=>R&&renderRob(R)).catch(()=>{});
   }catch(e){

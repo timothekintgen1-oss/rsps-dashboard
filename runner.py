@@ -54,12 +54,34 @@ def sync_tradingview():
     print(f"[tv] {tv['date']}  {tv.get('regime')}  MTPI={tv.get('mtpi')}  ({len(rows)} états archivés)")
 
 
+def exposure(res, alts_res):
+    """Exposition cible par actif (fractions du portefeuille), pages 1 à 5 du classeur."""
+    if res["regime"] != "LONG":
+        return {"CASH": 1.0}
+    sel = (alts_res or {}).get("selected") or []
+    trash = res.get("trash_pct", 0.0) if sel else 0.0     # aucun token retenu : reste en majeurs
+    cons = 1.0 - trash
+    maj, mino = ("ETH", "BTC") if res["majeur"] == "ETH" else ("BTC", "ETH")
+    out = {maj: round(0.8 * cons, 4), mino: round(0.2 * cons, 4)}
+    for t in sel:
+        out[t] = round(trash / len(sel), 4)
+    return out
+
+
 def main():
     os.makedirs(STATE_DIR, exist_ok=True)
     os.makedirs(os.path.join(HERE, "docs"), exist_ok=True)
     sync_tradingview()
     series = ds.get_series()
     res = st.evaluate(series["total"], series.get("ethbtc"), series.get("others_d"))
+    try:
+        import alts
+        alts_res = alts.run(series["btc"], series["eth"])
+        json.dump(alts_res, open(os.path.join(HERE, "docs", "alts.json"), "w"), indent=2, ensure_ascii=False)
+        print(f"  alts retenus : {', '.join(alts_res['selected']) or 'aucun'}")
+    except Exception as e:
+        print(f"[alts] {e}"); alts_res = None
+    res["exposure"] = exposure(res, alts_res)
 
     # réciprocité avec tes relevés TradingView (seed/parity.csv), si fourni
     if os.path.exists(PARITY):
@@ -110,7 +132,8 @@ def main():
         if res["rotation"] is not None:
             lines.append(f"Rotation {res['rotation']:+.2f} → {res['majeur']}")
         if res["trash"] is not None:
-            lines.append(f"Trash {res['trash']:+.2f} → small-caps {'ON' if res['small_caps'] else 'OFF'}")
+            lines.append(f"Trash {res['trash']:+.2f} → {res.get('trash_pct', 0):.0%} en alts")
+        lines.append("Exposition : " + " · ".join(f"{k} {v:.0%}" for k, v in res["exposure"].items()))
         if bars:
             lines.append("Ouverture TF : " + ", ".join(bars))
         notify("\n".join(lines))

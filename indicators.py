@@ -91,8 +91,8 @@ def tci_state(df, fast=11, slow=35, atr_len=60, trend_margin=0.3, ma="ema"):
     f = {"ema": ema, "sma": sma, "wma": wma, "rma": rma}[ma]
     diff = f(df["close"], fast) - f(df["close"], slow)
     band = trend_margin * atr(df, atr_len)
-    ev = np.where(diff > band, 1, np.where(diff < -band, -1, 0))
-    return _persist(ev)
+    # neutre = 0 (vert / rouge / blanc sur TradingView) : le classeur note bien 0 dans ce cas
+    return np.where(diff > band, 1, np.where(diff < -band, -1, 0))
 
 # --------------------------------------------------------------------------- #
 #  5. DEGA RMA (© QuantEdgeB)   Excel MTPI: 21 4 2 12 40 1.7 1.7

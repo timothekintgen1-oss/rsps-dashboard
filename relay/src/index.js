@@ -6,12 +6,12 @@
  *   GET  /log            dernières alertes reçues
  *
  * KV `RSPS` : "sys:<SYS>|<TF>" (dernière alerte par système/timeframe), "state", "log".
- * Règles identiques à strategy.py : LONG si MTPI > +0.10, CASH si < -0.10, sinon on garde
- * le régime précédent ; ETH majeur si rotation > 0 ; small-caps si LONG et trash > 0.
+ * Règles du classeur (identiques à strategy.py) : LONG si MTPI > 0,1, CASH si < 0,1 (0,1 pile :
+ * inchangé) ; ETH majeur si rotation > 0 ; trash = 20 % × force si LONG et OTHERS.D > 0.
  */
-const ENTRY = 0.10, EXIT = 0.10;
-const SYSTEMS = ["MTPI", "LTPI", "ROT", "TRASH"];
-const STATES_KEY = { MTPI: "states", LTPI: "ltpi_states", ROT: "rot_states", TRASH: "trash_states" };
+const THRESHOLD = 0.10, TRASH_MAX = 0.20;
+const SYSTEMS = ["MTPI", "ROT", "TRASH"];
+const STATES_KEY = { MTPI: "states", ROT: "rot_states", TRASH: "trash_states" };
 const LOG_MAX = 500;
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" };
@@ -71,14 +71,15 @@ export function combine(alerts, prevRegime) {
   }
   const mtpi = out.systems.MTPI.score, rot = out.systems.ROT.score, trash = out.systems.TRASH.score;
   let regime = prevRegime || "CASH";
-  if (mtpi != null) regime = mtpi > ENTRY ? "LONG" : mtpi < -EXIT ? "CASH" : regime;
+  if (mtpi != null) regime = mtpi > THRESHOLD ? "LONG" : mtpi < THRESHOLD ? "CASH" : regime;
   const long = regime === "LONG", ethOver = rot != null && rot > 0, small = long && trash != null && trash > 0;
+  const trashPct = small ? r4(TRASH_MAX * trash) : 0;
   let alloc = long ? (ethOver ? "LONG · ETH 80 / BTC 20" : "LONG · BTC 80 / ETH 20") : "CASH · Dominant Denominator";
-  if (small) alloc += "  + small-caps ≤20%";
+  if (small) alloc += `  + trash ${Math.round(trashPct * 100)}%`;
   return Object.assign(out, {
     date: last ? day(last) : null,
     mtpi, regime, rotation: rot, majeur: ethOver ? "ETH" : "BTC",
-    trash, small_caps: small, ltpi: out.systems.LTPI.score, alloc,
+    trash, small_caps: small, trash_pct: trashPct, alloc,
   });
 }
 

@@ -1,9 +1,10 @@
 //@version=6
-// RSPS TPI — tout-en-un
-// Calcule les 29 indicateurs des 4 systèmes (MTPI, LTPI, Rotation, Small-caps) à partir du
-// code ORIGINAL des scripts publics (auteurs crédités ci-dessous), sur leurs propres
-// symboles et timeframes, et envoie chaque système au relais à la clôture de sa bougie.
-// À poser sur UN graphique CRYPTOCAP:TOTAL en 1D, avec UNE alerte « Any alert() function call ».
+// RSPS — Montaigne
+// Reproduit le classeur « RSPS _ Mugiwara no Luffy » : TOTAL (MTPI, 10 ind.), ETHBTC (5 ind.),
+// OTHERS.D (5 ind.), à partir du code ORIGINAL des scripts publics (auteurs crédités ci-dessous),
+// chacun sur son symbole et sa timeframe. Affiche un tableau de bord (boussoles + exposition) et
+// envoie chaque système au relais à la clôture de sa bougie.
+// À poser sur un graphique en 1D (n'importe quel symbole), avec UNE alerte « Any alert() function call ».
 //
 // Sources (MPL 2.0 sauf mention) : Elliott Wave Oscillator © Koryu · Sebastine Trend Catcher
 // © sebastinecc · DFT Overlay © wbburgin (+ jdehorty/KernelFunctions) · Trend Change Indicator
@@ -13,7 +14,7 @@
 // · Adaptive Gaussian Moving Average © LeafAlgo.
 // Z-Score Deviation Fusion (RAKIQUANT) est protégé : remplacé par un z-score standard (proxy),
 // ou branché sur l'indicateur réel via « Source » si le graphique est en 2D.
-indicator("RSPS TPI — tout-en-un", shorttitle="RSPS TPI", overlay=false)
+indicator("RSPS — Montaigne", shorttitle="RSPS", overlay=true)
 
 import jdehorty/KernelFunctions/2 as kernel
 
@@ -21,9 +22,12 @@ TOTAL  = input.symbol("CRYPTOCAP:TOTAL",    "TOTAL",    group="Symboles")
 ETHBTC = input.symbol("BINANCE:ETHBTC",     "ETHBTC",   group="Symboles")
 OTHD   = input.symbol("CRYPTOCAP:OTHERS.D", "OTHERS.D", group="Symboles")
 zUseExt = input.bool(false, "MTPI : utiliser le vrai Z-Score Deviation Fusion", group="Z-Score (protégé)",
-     tooltip="Uniquement si ce graphique est CRYPTOCAP:TOTAL en 2D avec l'indicateur Z-Score Deviation Fusion (30 20) ajouté. Sinon, un z-score standard est utilisé.")
+     tooltip="Uniquement si ce graphique est CRYPTOCAP:TOTAL en 2D avec l'indicateur Z-Score Deviation Fusion (22 15) ajouté. Sinon, un z-score standard est utilisé.")
 zSrc  = input.source(close, "Source Z-Score", group="Z-Score (protégé)")
 zMode = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "État ±1"], group="Z-Score (protégé)")
+capital = input.float(20000, "Capital (€)", group="Affichage")
+tPos  = input.string("Haut droite", "Position du tableau", options=["Haut droite", "Haut gauche", "Bas droite", "Bas gauche", "Centre"], group="Affichage")
+tSize = input.string("Normal", "Taille du texte", options=["Petit", "Normal", "Grand"], group="Affichage")
 
 // ============================================================================================
 //  Indicateurs — logique reprise des scripts originaux, renvoie +1 / -1 (0 = neutre)
@@ -184,12 +188,12 @@ f_zproxy(int len) =>                                             // proxy du Z-S
     z > 0 ? 1 : -1
 
 // ============================================================================================
-//  Blocs par système : états de la bougie en cours ([0]) et de la précédente ([1])
+//  Blocs par système (pages 2, 3, 4 du classeur) : états de la bougie en cours et précédente
 // ============================================================================================
 b_mtpi2d() =>
     s1 = f_ewo(5, 32)
     s2 = f_mtfema(7, 19)
-    s3 = f_zproxy(30)
+    s3 = f_zproxy(22)
     s4 = f_dft(6, 29)
     s5 = f_wonder(20)
     s6 = f_maband(20, 5)
@@ -201,18 +205,6 @@ b_mtpi3d() =>
     s1 = f_sebastine(9, 6)
     s2 = f_tci(11, 35, 50, 0.3)
     [s1, s2, s1[1], s2[1], time_close, time_close[1]]
-
-b_ltpi() =>
-    s1 = f_lnl("Normal")
-    s2 = f_sebastine(9, 10)
-    s3 = f_ewo(4, 26)
-    s4 = f_dft(3, 20)
-    s5 = f_agma(23, 20)
-    s6 = f_tci(40, 60, 60, 0.3)
-    s7 = f_kalman(4.0, 0.01, 4, 1.05)
-    s8 = f_tsg(17)
-    s9 = f_mtfema(12, 6)
-    [s1, s2, s3, s4, s5, s6, s7, s8, s9, s1[1], s2[1], s3[1], s4[1], s5[1], s6[1], s7[1], s8[1], s9[1], time_close, time_close[1]]
 
 b_rot() =>
     s1 = f_dega(23, 4, 2.0, 21, 40, 1.7, 1.7)
@@ -232,7 +224,6 @@ b_trash() =>
 
 [m1, m2, m3p, m4, m5, m6, m7, m8, pm1, pm2, pm3p, pm4, pm5, pm6, pm7, pm8, tM2, ptM2] = request.security(TOTAL, "2D", b_mtpi2d())
 [n1, n2, pn1, pn2, tM3, ptM3] = request.security(TOTAL, "3D", b_mtpi3d())
-[l1, l2, l3, l4, l5, l6, l7, l8, l9, pl1, pl2, pl3, pl4, pl5, pl6, pl7, pl8, pl9, tL, ptL] = request.security(TOTAL, "W", b_ltpi())
 [r1, r2, r3, r4, r5, pr1, pr2, pr3, pr4, pr5, tR, ptR] = request.security(ETHBTC, "2D", b_rot())
 [t1, t2, t3, t4, t5, pt1, pt2, pt3, pt4, pt5, tT, ptT] = request.security(OTHD, "3D", b_trash())
 
@@ -242,7 +233,7 @@ m3  = zUseExt ? zExt : m3p
 pm3 = zUseExt ? zExt[1] : pm3p
 
 // ============================================================================================
-//  Envoi : un message par système, à la clôture de SA bougie (valeurs définitives)
+//  Envoi au relais : chaque système, à la clôture de SA bougie (valeurs définitives)
 // ============================================================================================
 f_kv(string k, int v) => "\"" + k + "\":" + str.tostring(v)
 
@@ -250,15 +241,11 @@ f_msg(string sysName, string tf, string tick, int t, string states) =>
     "{\"sys\":\"" + sysName + "\",\"tf\":\"" + tf + "\",\"ticker\":\"" + tick + "\",\"time\":" + str.tostring(t, "#") + ",\"states\":{" + states + "}}"
 
 mtpi2dJ(bool cur) =>
-    f_kv("EWO (5 32)", cur ? m1 : pm1) + "," + f_kv("MTF-EMA (7 19)", cur ? m2 : pm2) + "," + f_kv("Z-Score (30 20)", cur ? m3 : pm3) + "," +
+    f_kv("EWO (5 32)", cur ? m1 : pm1) + "," + f_kv("MTF-EMA (7 19)", cur ? m2 : pm2) + "," + f_kv("Z-Score (22 15)", cur ? m3 : pm3) + "," +
      f_kv("DFT (6 29)", cur ? m4 : pm4) + "," + f_kv("WonderTrend (20)", cur ? m5 : pm5) + "," + f_kv("MA Band (20 5)", cur ? m6 : pm6) + "," +
      f_kv("LNL (Tight)", cur ? m7 : pm7) + "," + f_kv("DEGA (21..)", cur ? m8 : pm8)
 mtpi3dJ(bool cur) =>
     f_kv("Sebastine (9 6)", cur ? n1 : pn1) + "," + f_kv("TrendChange (11 35)", cur ? n2 : pn2)
-ltpiJ(bool cur) =>
-    f_kv("LNL (Normal)", cur ? l1 : pl1) + "," + f_kv("Sebastine (9 10)", cur ? l2 : pl2) + "," + f_kv("EWO (4 26)", cur ? l3 : pl3) + "," +
-     f_kv("DFT (3 20)", cur ? l4 : pl4) + "," + f_kv("AGMA (23 20)", cur ? l5 : pl5) + "," + f_kv("TrendChange (40 60)", cur ? l6 : pl6) + "," +
-     f_kv("Kalman Hull (4..)", cur ? l7 : pl7) + "," + f_kv("Trend Strength (17)", cur ? l8 : pl8) + "," + f_kv("MTF-EMA (12 6)", cur ? l9 : pl9)
 rotJ(bool cur) =>
     f_kv("DEGA (23..)", cur ? r1 : pr1) + "," + f_kv("Sebastine (16 15)", cur ? r2 : pr2) + "," + f_kv("TrendChange (16 40)", cur ? r3 : pr3) + "," +
      f_kv("Z-Score (27 18)", cur ? r4 : pr4) + "," + f_kv("WonderTrend (def)", cur ? r5 : pr5)
@@ -266,15 +253,12 @@ trashJ(bool cur) =>
     f_kv("DFT (14 14)", cur ? t1 : pt1) + "," + f_kv("EWO (7 26)", cur ? t2 : pt2) + "," + f_kv("MTF-EMA (12 13)", cur ? t3 : pt3) + "," +
      f_kv("Trend Strength (21)", cur ? t4 : pt4) + "," + f_kv("Kalman Hull (3..)", cur ? t5 : pt5)
 
-// La bougie HTF se clôture avec la bougie du graphique si leurs heures de clôture coïncident.
 closes(int htfClose) => not na(htfClose) and htfClose == time_close
 
-// À chaque clôture du graphique, on envoie la DERNIÈRE bougie close de chaque système si elle
-// n'a pas encore été envoyée : fonctionne quelle que soit la timeframe du graphique (1D conseillé,
-// 2D fonctionne avec au plus 1 jour de retard sur les bougies 3D), et remplit tout au 1er passage.
+// À chaque clôture du graphique : envoie la dernière bougie close de chaque système si elle n'a
+// pas encore été envoyée (fonctionne en 1D comme en 2D ; remplit tout au premier passage).
 var int sM2 = na
 var int sM3 = na
-var int sL = na
 var int sR = na
 var int sT = na
 if barstate.isconfirmed and barstate.isrealtime
@@ -286,10 +270,6 @@ if barstate.isconfirmed and barstate.isrealtime
     if not na(cM3) and cM3 != sM3
         alert(f_msg("MTPI", "3D", "CRYPTOCAP:TOTAL", cM3, mtpi3dJ(closes(tM3))), alert.freq_all)
         sM3 := cM3
-    cL = closes(tL) ? tL : ptL
-    if not na(cL) and cL != sL
-        alert(f_msg("LTPI", "W", "CRYPTOCAP:TOTAL", cL, ltpiJ(closes(tL))), alert.freq_all)
-        sL := cL
     cR = closes(tR) ? tR : ptR
     if not na(cR) and cR != sR
         alert(f_msg("ROT", "2D", "BINANCE:ETHBTC", cR, rotJ(closes(tR))), alert.freq_all)
@@ -300,31 +280,147 @@ if barstate.isconfirmed and barstate.isrealtime
         sT := cT
 
 // ============================================================================================
-//  Affichage : score MTPI (dernières bougies closes) + tableau des 4 systèmes
+//  Tableau de bord : boussoles des 3 systèmes + détail des indicateurs + exposition
+//  (dernières bougies CLOSES : ce qui a été / sera envoyé)
 // ============================================================================================
-mtpi  = (pm1 + pm2 + pm3 + pm4 + pm5 + pm6 + pm7 + pm8 + pn1 + pn2) / 10.0
-ltpi  = (pl1 + pl2 + pl3 + pl4 + pl5 + pl6 + pl7 + pl8 + pl9) / 9.0
-rot   = (pr1 + pr2 + pr3 + pr4 + pr5) / 5.0
-trash = (pt1 + pt2 + pt3 + pt4 + pt5) / 5.0
+cur2 = closes(tM2)
+cur3 = closes(tM3)
+curR = closes(tR)
+curT = closes(tT)
+e1 = cur2 ? m1 : pm1
+e2 = cur2 ? m2 : pm2
+e3 = cur2 ? m3 : pm3
+e4 = cur2 ? m4 : pm4
+e5 = cur2 ? m5 : pm5
+e6 = cur2 ? m6 : pm6
+e7 = cur2 ? m7 : pm7
+e8 = cur2 ? m8 : pm8
+e9 = cur3 ? n1 : pn1
+e10 = cur3 ? n2 : pn2
+q1 = curR ? r1 : pr1
+q2 = curR ? r2 : pr2
+q3 = curR ? r3 : pr3
+q4 = curR ? r4 : pr4
+q5 = curR ? r5 : pr5
+k1 = curT ? t1 : pt1
+k2 = curT ? t2 : pt2
+k3 = curT ? t3 : pt3
+k4 = curT ? t4 : pt4
+k5 = curT ? t5 : pt5
+
+mtpi  = (e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8 + e9 + e10) / 10.0
+rot   = (q1 + q2 + q3 + q4 + q5) / 5.0
+trash = (k1 + k2 + k3 + k4 + k5) / 5.0
 var int regime = 0
-regime := mtpi > 0.1 ? 1 : mtpi < -0.1 ? -1 : regime
+regime := mtpi > 0.1 ? 1 : mtpi < 0.1 ? -1 : regime                    // règle du classeur
+isLong = regime == 1
+trashPct = isLong and trash > 0 ? 0.2 * trash : 0.0
+cons = isLong ? 1 - trashPct : 0.0
+ethW = isLong ? (rot > 0 ? 0.8 : 0.2) * cons : 0.0
+btcW = isLong ? (rot > 0 ? 0.2 : 0.8) * cons : 0.0
+cashW = isLong ? 0.0 : 1.0
 
-plot(mtpi, "MTPI", color = mtpi > 0.1 ? color.teal : mtpi < -0.1 ? color.red : color.gray, linewidth=2, style=plot.style_stepline)
-hline(0.1,  "Seuil LONG", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
-hline(-0.1, "Seuil CASH", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
-bgcolor(regime == 1 ? color.new(color.teal, 88) : regime == -1 ? color.new(color.red, 90) : na)
+// couleurs
+UP = #2DD4A7
+DN = #F0657A
+NEU = #8A94A6
+BG = #0B0F16
+BG2 = #141A24
+TXT = #EEF2F7
+MUTED = #667285
+f_c(float v) => v > 0.1 ? UP : v < -0.1 ? DN : NEU
+f_s(int v) => v > 0 ? UP : v < 0 ? DN : NEU
+f_pct(float x) => str.tostring(math.round(x * 100)) + " %"
+f_eur(float x) => str.tostring(math.round(x * capital), "#,###") + " €"
+sz  = tSize == "Petit" ? size.small : tSize == "Grand" ? size.large : size.normal
+szS = tSize == "Petit" ? size.tiny : tSize == "Grand" ? size.normal : size.small
+pos = tPos == "Haut gauche" ? position.top_left : tPos == "Bas droite" ? position.bottom_right : tPos == "Bas gauche" ? position.bottom_left : tPos == "Centre" ? position.middle_center : position.top_right
 
-f_col(float v) => v > 0.1 ? color.teal : v < -0.1 ? color.red : color.gray
-var table tb = table.new(position.top_right, 2, 6, bgcolor=color.new(#0E121A, 5), border_width=1, border_color=#232B3A)
+bgcolor(isLong ? color.new(UP, 93) : color.new(DN, 94), title="Fond selon le régime")
+
+// 12 colonnes : 0 = libellé, 1..10 = jauge / indicateurs, 11 = score
+var table tb = table.new(pos, 12, 16, bgcolor=BG, frame_color=#232B3A, frame_width=1, border_color=BG, border_width=2)
+
+// boussole : 10 cases de -1 à +1, remplies du centre vers le score
+f_gauge(int row, string lab, string sub, float v, string verdict) =>
+    table.cell(tb, 0, row, lab + "\n" + sub, text_color=TXT, text_size=sz, text_halign=text.align_left, bgcolor=BG2)
+    for i = 0 to 9
+        lo = -1 + i * 0.2
+        hi = lo + 0.2
+        filled = v >= 0 ? (lo >= 0 and lo < v) : (hi <= 0 and hi > v)
+        col = filled ? (v >= 0 ? color.from_gradient(i, 5, 9, color.new(UP, 45), UP) : color.from_gradient(i, 0, 4, DN, color.new(DN, 45))) : #1B2230
+        table.cell(tb, i + 1, row, i == 4 or i == 5 ? "│" : "", text_color=#2E3849, bgcolor=col, width=1.6, text_size=szS)
+    table.cell(tb, 11, row, str.tostring(v, "+0.00;-0.00") + "\n" + verdict, text_color=f_c(v), text_size=sz, bgcolor=BG2)
+
+// ligne d'indicateurs : une case colorée par indicateur (nom abrégé, infobulle = nom complet)
+f_ind(int row, int col, string abbr, string full, int v) =>
+    table.cell(tb, col, row, abbr, text_color=BG, bgcolor=f_s(v), text_size=szS, tooltip=full + " : " + (v > 0 ? "+1 haussier" : v < 0 ? "−1 baissier" : "0 neutre"))
+
+// barre d'exposition : 10 cases = 100 %
+f_row(int row, string name, float w, color c) =>
+    table.cell(tb, 0, row, name, text_color=TXT, text_size=sz, text_halign=text.align_left, bgcolor=BG2)
+    n = math.round(w * 10)
+    for i = 1 to 10
+        table.cell(tb, i, row, "", bgcolor=i <= n and w > 0 ? c : #1B2230, width=1.6)
+    table.cell(tb, 11, row, f_pct(w) + "\n" + f_eur(w), text_color=w > 0 ? TXT : MUTED, text_size=szS, bgcolor=BG2)
+
 if barstate.islast
-    table.cell(tb, 0, 0, "Régime", text_color=color.white, text_size=size.small)
-    table.cell(tb, 1, 0, regime == 1 ? "LONG" : "CASH", text_color=regime == 1 ? color.teal : color.red, text_size=size.small)
-    table.cell(tb, 0, 1, "MTPI",  text_color=color.silver, text_size=size.small)
-    table.cell(tb, 1, 1, str.tostring(mtpi,  "+0.00;-0.00"), text_color=f_col(mtpi),  text_size=size.small)
-    table.cell(tb, 0, 2, "LTPI",  text_color=color.silver, text_size=size.small)
-    table.cell(tb, 1, 2, str.tostring(ltpi,  "+0.00;-0.00"), text_color=f_col(ltpi),  text_size=size.small)
-    table.cell(tb, 0, 3, "Rotation", text_color=color.silver, text_size=size.small)
-    table.cell(tb, 1, 3, str.tostring(rot,   "+0.00;-0.00") + (rot > 0 ? " ETH" : " BTC"), text_color=f_col(rot), text_size=size.small)
-    table.cell(tb, 0, 4, "Small-caps", text_color=color.silver, text_size=size.small)
-    table.cell(tb, 1, 4, str.tostring(trash, "+0.00;-0.00"), text_color=f_col(trash), text_size=size.small)
-    table.cell(tb, 0, 5, zUseExt ? "Z-Score : réel" : "Z-Score : proxy", text_color=color.gray, text_size=size.tiny)
+    table.cell(tb, 0, 0, "RSPS · MONTAIGNE", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+    table.cell(tb, 0, 1, isLong ? "LONG" : "CASH", text_color=isLong ? UP : DN, text_size=size.huge, text_halign=text.align_left)
+    table.cell(tb, 8, 1, "MTPI\n" + str.tostring(mtpi, "+0.00;-0.00"), text_color=f_c(mtpi), text_size=sz)
+
+    f_gauge(2, "TOTAL", "Tendance · MTPI", mtpi, isLong ? "LONG" : "CASH")
+    f_ind(3, 1, "EWO", "Elliott Wave Osc. 2D (5 32)", e1)
+    f_ind(3, 2, "MTF", "MTF EMA Diff & Stoch 2D (7 19)", e2)
+    f_ind(3, 3, "Z", "Z-Score 2D (22 15)" + (zUseExt ? "" : " — proxy"), e3)
+    f_ind(3, 4, "DFT", "DFT Overlay 2D (6 29)", e4)
+    f_ind(3, 5, "WT", "WonderTrend 2D (20)", e5)
+    f_ind(3, 6, "MAB", "MA Band Distance 2D (20 5)", e6)
+    f_ind(3, 7, "LNL", "LNL Trend System 2D (Tight)", e7)
+    f_ind(3, 8, "DEGA", "DEGA RMA 2D (21 4 2 12 40 1.7 1.7)", e8)
+    f_ind(3, 9, "SEB", "Sebastine Trend Catcher 3D (9 6)", e9)
+    f_ind(3, 10, "TCI", "Trend Change Indicator 3D (11 35)", e10)
+    table.cell(tb, 0, 3, "10 indicateurs", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+
+    f_gauge(4, "ETHBTC", "Majeur dominant", rot, rot > 0 ? "ETH" : "BTC")
+    f_ind(5, 1, "DEGA", "DEGA RMA 2D (23 4 2 21 40 1.7 1.7)", q1)
+    f_ind(5, 3, "SEB", "Sebastine 2D (16 15)", q2)
+    f_ind(5, 5, "TCI", "Trend Change 2D (16 40)", q3)
+    f_ind(5, 7, "Z", "Z-Score 2D (27 18) — proxy", q4)
+    f_ind(5, 9, "WT", "WonderTrend 2D", q5)
+    table.cell(tb, 0, 5, "5 indicateurs", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+
+    f_gauge(6, "OTHERS.D", "Trash (alts)", trash, trashPct > 0 ? f_pct(trashPct) : "OFF")
+    f_ind(7, 1, "DFT", "DFT Overlay 3D (14 14)", k1)
+    f_ind(7, 3, "EWO", "Elliott Wave 3D (7 26)", k2)
+    f_ind(7, 5, "MTF", "MTF EMA Diff 3D (12 13)", k3)
+    f_ind(7, 7, "TSG", "Trend Strength Gauge 3D (21)", k4)
+    f_ind(7, 9, "KHS", "Kalman Hull ST 3D (3 0.01 12 1.08)", k5)
+    table.cell(tb, 0, 7, "5 indicateurs", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+
+    table.cell(tb, 0, 8, "EXPOSITION CIBLE", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+    f_row(9,  "ETH",  ethW, #8B98FF)
+    f_row(10, "BTC",  btcW, #F7931A)
+    f_row(11, "Alts (trash)", trashPct, #C77DFF)
+    f_row(12, "Cash", cashW, NEU)
+    table.cell(tb, 0, 13, "Alts retenus : table de sélection sur le dashboard", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+
+// fusions de cellules : une seule fois (les répéter à chaque tick peut lever une erreur)
+var bool merged = false
+if barstate.islast and not merged
+    table.merge_cells(tb, 0, 0, 11, 0)
+    table.merge_cells(tb, 0, 1, 7, 1)
+    table.merge_cells(tb, 8, 1, 11, 1)
+    table.merge_cells(tb, 1, 5, 2, 5)
+    table.merge_cells(tb, 3, 5, 4, 5)
+    table.merge_cells(tb, 5, 5, 6, 5)
+    table.merge_cells(tb, 7, 5, 8, 5)
+    table.merge_cells(tb, 9, 5, 10, 5)
+    table.merge_cells(tb, 1, 7, 2, 7)
+    table.merge_cells(tb, 3, 7, 4, 7)
+    table.merge_cells(tb, 5, 7, 6, 7)
+    table.merge_cells(tb, 7, 7, 8, 7)
+    table.merge_cells(tb, 9, 7, 10, 7)
+    table.merge_cells(tb, 0, 8, 11, 8)
+    table.merge_cells(tb, 0, 13, 11, 13)
+    merged := true
