@@ -56,16 +56,36 @@ def bybit_daily(symbol, start="2024-01-01"):
     return df[["time", "open", "high", "low", "close"]].drop_duplicates("time").set_index("time").sort_index()
 
 
+def kucoin_daily(symbol, start="2024-01-01"):
+    """Bougies 1D KuCoin (accessible depuis les serveurs US de GitHub, contrairement à Bybit)."""
+    pair = symbol.replace("USDT", "-USDT")
+    end = int(pd.Timestamp.utcnow().timestamp()); t0 = int(pd.Timestamp(start).timestamp())
+    rows = []
+    while end > t0:
+        r = requests.get("https://api.kucoin.com/api/v1/market/candles", params={"type": "1day", "symbol": pair,
+                         "startAt": t0, "endAt": end}, headers=UA, timeout=30).json()
+        lst = r.get("data") or []
+        if not lst: break
+        rows += lst; end = int(lst[-1][0]) - 1                     # du plus récent au plus ancien
+        if len(lst) < 1500: break
+    df = pd.DataFrame([[x[0], x[1], x[3], x[4], x[2]] for x in rows], columns=["t", "open", "high", "low", "close"]).astype(float)
+    df["time"] = pd.to_datetime(df["t"], unit="s").dt.normalize()
+    return df[["time", "open", "high", "low", "close"]].drop_duplicates("time").set_index("time").sort_index()
+
+
 def token_daily(symbol, start="2024-01-01"):
-    """Binance, ou Bybit si Binance a moins d'historique (listing récent)."""
-    b = binance_daily(symbol, start=start)
-    if len(b) >= 400:
-        return b
-    try:
-        y = bybit_daily(symbol, start=start)
-        return y if len(y) > len(b) else b
-    except Exception:
-        return b
+    """Binance ; si l'historique est court (listing récent), KuCoin puis Bybit."""
+    best = binance_daily(symbol, start=start)
+    if len(best) >= 400:
+        return best
+    for fn in (kucoin_daily, bybit_daily):
+        try:
+            alt = fn(symbol, start=start)
+            if len(alt) > len(best):
+                best = alt
+        except Exception:
+            pass
+    return best
 
 
 def yahoo_gold():
@@ -189,6 +209,50 @@ def _fill_gaps(df):
 
 REF = os.path.join(SEED, "live_ref.json")
 
+# Paniers pour reconstituer un trou dans les exports TradingView (en attendant les alertes TV) :
+# TOTAL ~ panier des plus grosses capitalisations ; OTHERS ~ panier d'alts hors top 10.
+TOTAL_BASKET = {"BTCUSDT": .62, "ETHUSDT": .13, "XRPUSDT": .05, "BNBUSDT": .04, "SOLUSDT": .03,
+                "DOGEUSDT": .01, "ADAUSDT": .01, "TRXUSDT": .01, "LINKUSDT": .005, "AVAXUSDT": .005}
+OTHERS_BASKET = ["SUIUSDT", "AVAXUSDT", "TONUSDT", "NEARUSDT", "ONDOUSDT", "AAVEUSDT", "RENDERUSDT",
+                 "FETUSDT", "UNIUSDT", "TAOUSDT", "LTCUSDT", "DOTUSDT", "HBARUSDT", "XLMUSDT"]
+
+
+def _basket(weights, start):
+    """Indice buy-and-hold d'un panier (base 1 au premier jour commun)."""
+    px = {}
+    for sym in weights:
+        try:
+            px[sym] = binance_daily(sym, start=str(start.date()))["close"]
+        except Exception:
+            pass
+    df = pd.DataFrame(px).dropna(axis=1, how="all").ffill().dropna()
+    w = pd.Series({k: weights[k] for k in df.columns}); w = w / w.sum()
+    return (df / df.iloc[0]).mul(w, axis=1).sum(axis=1)
+
+
+def reconstruct_gaps(total, others, max_gap=5):
+    """Comble les trous > max_gap jours du seed TradingView en chaînant les variations des
+    paniers Binance au dernier niveau TradingView connu. Renvoie (total, others, info)."""
+    info = {}
+    def gaps(df):
+        d = df.index.to_series().diff().dt.days
+        return [(df.index[i - 1], df.index[i]) for i in range(1, len(df)) if d.iloc[i] > max_gap]
+    for a, b in gaps(total):
+        tb = _basket(TOTAL_BASKET, a)
+        ob = _basket({k: 1 for k in OTHERS_BASKET}, a)
+        days = tb.index[(tb.index > a) & (tb.index < b)]
+        if not len(days):
+            continue
+        t0, o0 = float(total.loc[a, "close"]), float(others.loc[a, "close"]) if a in others.index else None
+        tl = t0 * tb.loc[days]
+        rows = pd.DataFrame({"open": tl, "high": tl, "low": tl, "close": tl})
+        total = pd.concat([total, rows]).sort_index()
+        if o0 is not None:
+            ol = o0 * (ob.reindex(days).ffill() / tb.loc[days])
+            others = pd.concat([others, pd.DataFrame({"open": ol, "high": ol, "low": ol, "close": ol})]).sort_index()
+        info[f"{a.date()} -> {b.date()}"] = len(days)
+    return total, others, info
+
 
 def _chain(name, seed_df, day, raw):
     """Niveau à ajouter au seed TradingView à partir d'une source d'un autre univers
@@ -225,8 +289,16 @@ def get_series(today=None):
     else:
         out["ethbtc"] = binance_daily("ETHBTC")
 
-    # indices : seed TradingView + variation du jour (CoinGecko / CoinPaprika), trous comblés
+    # indices : seed TradingView + trous reconstitués (paniers Binance) + variation du jour
     total_seed, others_seed = _load_seed("total.csv"), _load_seed("others_d.csv")
+    if total_seed is not None and others_seed is not None:
+        # le dernier jour du seed peut être aujourd'hui (point déjà persisté) : on reconstitue jusqu'à hier
+        tt = total_seed if total_seed.index.max() >= today else _append(total_seed, today, float(total_seed["close"].iloc[-1]))
+        total_seed, others_seed, out["reconstructed"] = reconstruct_gaps(tt, others_seed)
+        if total_seed.index.max() == today and not (_load_seed("total.csv").index.max() >= today):
+            total_seed = total_seed.iloc[:-1]                 # retire le point technique ajouté
+        if out["reconstructed"]:
+            print(f"[info] trous du seed reconstitués (paniers Binance) : {out['reconstructed']}")
     try:
         total_raw, others_raw = total_dominance()
         total_v = _chain("total", total_seed, today, total_raw)

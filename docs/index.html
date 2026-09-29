@@ -495,6 +495,9 @@ function renderLive(){
   const tv=S._src.MTPI==='tv', fresh=days<=(tv?4:2);
   $('live').classList.toggle('off',!fresh);
   $('liveTxt').innerHTML=`${tv?'TradingView':'Moteur Python'} · <b class="mono">${new Date(S.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</b>`;
+  const rc=S.reconstructed||{};
+  if(!tv&&Object.keys(rc).length){$('warn').classList.add('show');
+    $('warn').textContent=`ⓘ Moteur Python : TOTAL et OTHERS.D reconstitués sur ${Object.keys(rc).map(k=>k.replace('->','→')).join(', ')} à partir des prix Binance (tes exports TradingView s'arrêtent avant). Signal indicatif en attendant les alertes TradingView.`;}
   if(!fresh){$('warn').classList.add('show');$('warn').textContent=`⚠ Données vieilles de ${days} jours. ${tv?'Vérifie tes alertes TradingView (elles expirent parfois).':'Vérifie que le bot quotidien tourne bien (onglet Actions sur GitHub).'}`;}
 }
 

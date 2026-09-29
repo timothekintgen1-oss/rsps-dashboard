@@ -82,6 +82,7 @@ def main():
     except Exception as e:
         print(f"[alts] {e}"); alts_res = None
     res["exposure"] = exposure(res, alts_res)
+    res["reconstructed"] = series.get("reconstructed") or {}
 
     # réciprocité avec tes relevés TradingView (seed/parity.csv), si fourni
     if os.path.exists(PARITY):
