@@ -1,23 +1,23 @@
 {
-  "date": "2026-09-28",
-  "mtpi": 0.8,
-  "regime": "LONG",
+  "date": "2026-09-29",
+  "mtpi": -0.8,
+  "regime": "CASH",
   "rotation": 0.6,
   "majeur": "ETH",
-  "trash": 1.0,
-  "small_caps": true,
-  "trash_pct": 0.2,
-  "alloc": "LONG · ETH 80 / BTC 20  + trash 20%",
+  "trash": 0.2,
+  "small_caps": false,
+  "trash_pct": 0.0,
+  "alloc": "CASH · Dominant Denominator",
   "states": {
-    "EWO (5 32)": 1,
-    "MTF-EMA (7 19)": 1,
-    "Sebastine (9 6)": 1,
-    "Z-Score (22 15)": 1,
-    "DFT (6 29)": 1,
+    "EWO (5 32)": -1,
+    "MTF-EMA (7 19)": -1,
+    "Sebastine (9 6)": -1,
+    "Z-Score (22 15)": -1,
+    "DFT (6 29)": -1,
     "WonderTrend (20)": -1,
-    "TrendChange (11 35)": 1,
-    "MA Band (20 5)": 1,
-    "LNL (Tight)": 1,
+    "TrendChange (11 35)": -1,
+    "MA Band (20 5)": -1,
+    "LNL (Tight)": -1,
     "DEGA (21..)": 1
   },
   "rot_states": {
@@ -29,27 +29,18 @@
   },
   "trash_states": {
     "DFT (14 14)": 1,
-    "EWO (7 26)": 1,
+    "EWO (7 26)": -1,
     "MTF-EMA (12 13)": 1,
-    "Trend Strength (21)": 1,
+    "Trend Strength (21)": -1,
     "Kalman Hull (3..)": 1
   },
   "new_bars": {
-    "2D": true,
-    "3D": true,
-    "W": true
+    "2D": false,
+    "3D": false,
+    "W": false
   },
   "exposure": {
-    "ETH": 0.64,
-    "BTC": 0.16,
-    "SUI": 0.025,
-    "TAO": 0.025,
-    "AAVE": 0.025,
-    "FET": 0.025,
-    "LINK": 0.025,
-    "AVAX": 0.025,
-    "ONDO": 0.025,
-    "RENDER": 0.025
+    "CASH": 1.0
   },
   "reciprocity": {
     "by_block": {
