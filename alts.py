@@ -73,7 +73,7 @@ def run(btc=None, eth=None):
     rows = []
     for t in cfg["tokens"]:
         try:
-            tok = ds.binance_daily(t["binance"], start=START)
+            tok = ds.token_daily(t["binance"], start=START)
         except Exception as e:
             print(f"[alts] {t['ticker']} indispo : {e}"); continue
         rows.append({"ticker": t["ticker"], "mcap": mc.get(t["ticker"]),

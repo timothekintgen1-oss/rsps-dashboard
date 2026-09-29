@@ -39,6 +39,35 @@ def binance_daily(symbol, start="2018-01-01"):
     return df[["time","open","high","low","close"]].drop_duplicates("time").set_index("time")
 
 
+def bybit_daily(symbol, start="2024-01-01"):
+    """Bougies 1D spot Bybit (repli pour les tokens listés récemment sur Binance, ex. HYPE)."""
+    end = int(pd.Timestamp.utcnow().timestamp() * 1000); t0 = int(pd.Timestamp(start).timestamp() * 1000)
+    rows = []
+    while end > t0:
+        r = requests.get("https://api.bybit.com/v5/market/kline", params={"category": "spot", "symbol": symbol,
+                         "interval": "D", "end": end, "limit": 1000}, headers=UA, timeout=30).json()
+        lst = (r.get("result") or {}).get("list") or []
+        if not lst: break
+        rows += lst; end = int(lst[-1][0]) - 1                     # Bybit renvoie du plus récent au plus ancien
+        if len(lst) < 1000: break
+    df = pd.DataFrame(rows, columns=["t", "open", "high", "low", "close", "v", "q"]).astype(float)
+    df["time"] = pd.to_datetime(df["t"], unit="ms").dt.normalize()
+    df = df[df["time"] >= pd.Timestamp(start)]
+    return df[["time", "open", "high", "low", "close"]].drop_duplicates("time").set_index("time").sort_index()
+
+
+def token_daily(symbol, start="2024-01-01"):
+    """Binance, ou Bybit si Binance a moins d'historique (listing récent)."""
+    b = binance_daily(symbol, start=start)
+    if len(b) >= 400:
+        return b
+    try:
+        y = bybit_daily(symbol, start=start)
+        return y if len(y) > len(b) else b
+    except Exception:
+        return b
+
+
 def yahoo_gold():
     """Or (future COMEX GC=F) via Yahoo Finance — historique depuis 2000."""
     r = requests.get("https://query1.finance.yahoo.com/v8/finance/chart/GC=F",
@@ -73,6 +102,25 @@ def _cg(path, **params):
             r.raise_for_status(); return r.json()
         time.sleep(15 * (i + 1))
     r.raise_for_status()
+
+
+def paprika_total_dominance():
+    """Repli CoinPaprika (gratuit, sans clé) : (market cap totale, dominance % hors top 10)."""
+    g = requests.get("https://api.coinpaprika.com/v1/global", headers=UA, timeout=30).json()
+    total = float(g["market_cap_usd"])
+    rows = requests.get("https://api.coinpaprika.com/v1/tickers", params={"quotes": "USD"},
+                        headers=UA, timeout=60).json()
+    top10 = sum(sorted((r["quotes"]["USD"].get("market_cap") or 0 for r in rows), reverse=True)[:10])
+    return total, (total - top10) / total * 100.0
+
+
+def total_dominance():
+    """CoinGecko (source d'origine), sinon CoinPaprika — CoinGecko renvoie 403 sans clé depuis 09/2026."""
+    try:
+        return coingecko_total_dominance()
+    except Exception as e:
+        print(f"[warn] CoinGecko indispo ({e}) -> CoinPaprika")
+        return paprika_total_dominance()
 
 
 def coingecko_total_dominance():
@@ -139,6 +187,30 @@ def _fill_gaps(df):
     return pd.concat([df, *fills]).sort_index() if fills else df
 
 
+REF = os.path.join(SEED, "live_ref.json")
+
+
+def _chain(name, seed_df, day, raw):
+    """Niveau à ajouter au seed TradingView à partir d'une source d'un autre univers
+    (CoinGecko / CoinPaprika) : on n'en garde que la VARIATION depuis le dernier point,
+    appliquée au dernier niveau TradingView. Évite le saut d'échelle (ex. OTHERS.D 8 % vs 13 %)."""
+    import json
+    ref = json.load(open(REF)) if os.path.exists(REF) else {}
+    d = str(pd.Timestamp(day).date())
+    r = ref.get(name)
+    last_level = float(seed_df["close"].iloc[-1])
+    if r and r["date"] == d:                       # relance le même jour : même base
+        base_raw, base_level = r["prev_raw"], r["prev_level"]
+    elif r:                                        # nouveau jour : la veille devient la base
+        base_raw, base_level = r["raw"], r["level"]
+    else:                                          # premier passage : on s'ancre sans saut
+        base_raw, base_level = raw, last_level
+    level = base_level * raw / base_raw
+    ref[name] = {"date": d, "raw": raw, "level": level, "prev_raw": base_raw, "prev_level": base_level}
+    json.dump(ref, open(REF, "w"), indent=1)
+    return level
+
+
 def get_series(today=None):
     today = pd.Timestamp(today or pd.Timestamp.utcnow().date()).normalize()
     out = {"btc": binance_daily("BTCUSDT"), "eth": binance_daily("ETHUSDT"),
@@ -153,16 +225,18 @@ def get_series(today=None):
     else:
         out["ethbtc"] = binance_daily("ETHBTC")
 
-    # indices : seed + append CoinGecko (avec comblement du trou)
+    # indices : seed TradingView + variation du jour (CoinGecko / CoinPaprika), trous comblés
     total_seed, others_seed = _load_seed("total.csv"), _load_seed("others_d.csv")
     try:
-        total_v, others_dom = coingecko_total_dominance()
+        total_raw, others_raw = total_dominance()
+        total_v = _chain("total", total_seed, today, total_raw)
+        others_dom = _chain("others_d", others_seed, today, others_raw)
         out["total"]    = _bridge(total_seed,  today, total_v)
         out["others_d"] = _bridge(others_seed, today, others_dom)
         _persist("total.csv", today, total_v)
         _persist("others_d.csv", today, others_dom)
     except Exception as e:
-        print(f"[warn] CoinGecko indispo ({e}) — seed seul.")
+        print(f"[warn] market cap globale indispo ({e}) — seed seul.")
         out["total"], out["others_d"] = _fill_gaps(total_seed), _fill_gaps(others_seed)
 
     if out["total"] is None:

@@ -2,20 +2,95 @@
   "_note": "Page 5 du classeur : tokens candidats au trash (modifiable). binance = paire USDT, coingecko = id pour la market cap.",
   "threshold": 4,
   "tokens": [
-    {"ticker": "SUI",    "binance": "SUIUSDT",    "coingecko": "sui"},
-    {"ticker": "SOL",    "binance": "SOLUSDT",    "coingecko": "solana"},
-    {"ticker": "TAO",    "binance": "TAOUSDT",    "coingecko": "bittensor"},
-    {"ticker": "DOGE",   "binance": "DOGEUSDT",   "coingecko": "dogecoin"},
-    {"ticker": "LINK",   "binance": "LINKUSDT",   "coingecko": "chainlink"},
-    {"ticker": "AVAX",   "binance": "AVAXUSDT",   "coingecko": "avalanche-2"},
-    {"ticker": "TON",    "binance": "TONUSDT",    "coingecko": "the-open-network"},
-    {"ticker": "XRP",    "binance": "XRPUSDT",    "coingecko": "ripple"},
-    {"ticker": "BNB",    "binance": "BNBUSDT",    "coingecko": "binancecoin"},
-    {"ticker": "NEAR",   "binance": "NEARUSDT",   "coingecko": "near"},
-    {"ticker": "ONDO",   "binance": "ONDOUSDT",   "coingecko": "ondo-finance"},
-    {"ticker": "AAVE",   "binance": "AAVEUSDT",   "coingecko": "aave"},
-    {"ticker": "RENDER", "binance": "RENDERUSDT", "coingecko": "render-token"},
-    {"ticker": "FET",    "binance": "FETUSDT",    "coingecko": "fetch-ai"},
-    {"ticker": "ADA",    "binance": "ADAUSDT",    "coingecko": "cardano"}
+    {
+      "ticker": "SUI",
+      "binance": "SUIUSDT",
+      "coingecko": "sui"
+    },
+    {
+      "ticker": "SOL",
+      "binance": "SOLUSDT",
+      "coingecko": "solana"
+    },
+    {
+      "ticker": "TAO",
+      "binance": "TAOUSDT",
+      "coingecko": "bittensor"
+    },
+    {
+      "ticker": "DOGE",
+      "binance": "DOGEUSDT",
+      "coingecko": "dogecoin"
+    },
+    {
+      "ticker": "LINK",
+      "binance": "LINKUSDT",
+      "coingecko": "chainlink"
+    },
+    {
+      "ticker": "AVAX",
+      "binance": "AVAXUSDT",
+      "coingecko": "avalanche-2"
+    },
+    {
+      "ticker": "TON",
+      "binance": "TONUSDT",
+      "coingecko": "the-open-network"
+    },
+    {
+      "ticker": "XRP",
+      "binance": "XRPUSDT",
+      "coingecko": "ripple"
+    },
+    {
+      "ticker": "BNB",
+      "binance": "BNBUSDT",
+      "coingecko": "binancecoin"
+    },
+    {
+      "ticker": "NEAR",
+      "binance": "NEARUSDT",
+      "coingecko": "near"
+    },
+    {
+      "ticker": "ONDO",
+      "binance": "ONDOUSDT",
+      "coingecko": "ondo-finance"
+    },
+    {
+      "ticker": "AAVE",
+      "binance": "AAVEUSDT",
+      "coingecko": "aave"
+    },
+    {
+      "ticker": "RENDER",
+      "binance": "RENDERUSDT",
+      "coingecko": "render-token"
+    },
+    {
+      "ticker": "FET",
+      "binance": "FETUSDT",
+      "coingecko": "fetch-ai"
+    },
+    {
+      "ticker": "ADA",
+      "binance": "ADAUSDT",
+      "coingecko": "cardano"
+    },
+    {
+      "ticker": "HYPE",
+      "binance": "HYPEUSDT",
+      "coingecko": "hyperliquid"
+    },
+    {
+      "ticker": "AERO",
+      "binance": "AEROUSDT",
+      "coingecko": "aerodrome-finance"
+    },
+    {
+      "ticker": "UNI",
+      "binance": "UNIUSDT",
+      "coingecko": "uniswap"
+    }
   ]
 }
