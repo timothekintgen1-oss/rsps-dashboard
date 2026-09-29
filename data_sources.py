@@ -20,7 +20,7 @@ SEED = os.path.join(os.path.dirname(__file__), "seed")
 UA = {"User-Agent": "rsps-bot/1.0"}
 
 
-def binance_daily(symbol, start="2018-01-01"):
+def binance_daily(symbol, start="2018-01-01", volume=False):
     # miroir public de Binance : api.binance.com renvoie 451 depuis les runners US de GitHub
     url = "https://data-api.binance.vision/api/v3/klines"
     ms = int(pd.Timestamp(start).timestamp() * 1000); rows = []
@@ -36,7 +36,10 @@ def binance_daily(symbol, start="2018-01-01"):
     df["time"] = pd.to_datetime(df["t"], unit="ms").dt.normalize()
     for a, b in [("o","open"),("h","high"),("l","low"),("c","close")]:
         df[b] = df[a].astype(float)
-    return df[["time","open","high","low","close"]].drop_duplicates("time").set_index("time")
+    cols = ["time","open","high","low","close"]
+    if volume:
+        df["qvol"] = df[2].astype(float); cols.append("qvol")        # volume en USDT
+    return df[cols].drop_duplicates("time").set_index("time")
 
 
 def bybit_daily(symbol, start="2024-01-01"):

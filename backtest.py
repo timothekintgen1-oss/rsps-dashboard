@@ -62,6 +62,13 @@ def run(series):
 
     raw, goldv = build(False), build(True)
     curves = {"raw": raw, "gold": goldv, "btc": ret_btc}
+    alts_stats = None
+    if series.get("others_d") is not None:
+        try:
+            import backtest_alts as ba
+            curves["full"], alts_stats = ba.sleeve(series, idx, long, w_eth, FEE)
+        except Exception as e:
+            print(f"[backtest alts] {e}")
 
     # equity normalisée à 100, sous-échantillonnée (~180 pts) pour le JSON
     step = max(1, len(idx) // 180)
@@ -78,6 +85,7 @@ def run(series):
         "curves": out_curves,
         "metrics_full": {k: _metrics(r) for k, r in curves.items()},
         "metrics_window": {k: _metrics(r, WINDOW) for k, r in curves.items()},
-        "prof": PROF, "window": list(WINDOW),
+        "prof": PROF, "window": list(WINDOW), "alts": alts_stats,
+        "metrics_2020": {k: _metrics(r, ("2020-01-01", str(idx[-1].date()))) for k, r in curves.items()},
         "as_of": str(idx[-1].date()),
     }

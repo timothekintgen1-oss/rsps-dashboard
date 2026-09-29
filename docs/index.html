@@ -135,7 +135,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .tip .r i{width:8px;height:8px;border-radius:50%}
 .tip .r b{margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:600}
 
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}
 @media(max-width:760px){.kpis{grid-template-columns:1fr}}
 .kpi{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:16px}
 .kpi-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px}
@@ -200,6 +200,22 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
 .dots5{display:inline-flex;gap:3px}.dots5 i{width:9px;height:9px;border-radius:2px;background:var(--s3)}.dots5 i.on{background:var(--sc)}
 .wt{font-family:'JetBrains Mono',monospace;font-weight:600}
 .alts-note{font-size:12px;color:var(--t3);padding:12px 4px 0}
+
+/* résumé comparatif */
+.cmp{padding:20px 22px;margin-bottom:16px}
+.cmp h3{font-size:15px;font-weight:700;margin-bottom:2px}
+.cmp .q{font-size:12.5px;color:var(--t3);margin-bottom:14px}
+.ctab{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+.ctab th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-weight:500;padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+.ctab th.g{text-align:center;border-bottom:1px solid var(--line2);color:var(--t2)}
+.ctab td{padding:10px;text-align:right;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace}
+.ctab td:first-child,.ctab th:first-child{text-align:left;font-family:'Manrope',sans-serif}
+.ctab tr.me td:first-child{font-weight:700}
+.ctab tr.pf td{color:var(--t2)}
+.ctab .bar{display:inline-block;height:8px;border-radius:3px;vertical-align:middle;margin-right:8px}
+.verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:16px}
+.vd{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--t2)}
+.vd b{color:var(--t1)}
 
 /* bottom */
 .bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-top:16px}
@@ -272,6 +288,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Manrope',system-ui,sans-s
   <section class="card alts" id="alts" style="display:none"></section>
 
   <div class="sh"><div><h2>Performance du backtest</h2><p>Base 100 · frais 0,045 % par transaction · signaux décalés d'un jour</p></div></div>
+  <section class="card cmp" id="cmp" style="overflow-x:auto"></section>
   <section class="card perf">
     <div class="perf-top">
       <div class="lg" id="lg"></div>
@@ -403,7 +420,7 @@ function renderSystems(){
 }
 
 /* ---------- chart ---------- */
-const SER=[['raw','RSPS',C.up,2.4],['gold','RSPS + Or',C.gold,2],['btc','BTC conservé',C.neu,1.6]];
+let SER=[['full','RSPS + alts',C.sc,2.4],['raw','RSPS majeurs',C.up,2],['gold','RSPS + Or',C.gold,1.6],['btc','BTC conservé',C.neu,1.6]];
 function slice(){
   const d=B.dates.map(x=>new Date(x)); let i0=0,i1=d.length-1;
   if(range==='win'){const[a,b]=B.window.map(x=>new Date(x));i0=d.findIndex(x=>x>=a);const j=d.findIndex(x=>x>b);i1=j<0?i1:Math.max(i0+1,j-1);}
@@ -460,7 +477,31 @@ function renderChart(){
     const px=x/W*r.width; tip.style.left=(px>r.width-200?px-190:px+14)+'px'; tip.style.top='20px'; tip.style.opacity=1;};
   svg.onpointerleave=()=>{tip.style.opacity=0;$('xh').setAttribute('opacity',0);SER.forEach(([k])=>$('hd-'+k).setAttribute('opacity',0));};
 }
+function renderCmp(){
+  const w=B.metrics_window||{}, a=B.metrics_2020||{}, pf=B.prof||{}, win=B.window||[];
+  const rows=[['me','Ton système + alts','full',C.sc],['me','Ton système (majeurs)','raw',C.up],['me','Ton système + Or','gold',C.gold],
+              ['pf','Prof','p:raw',C.neu],['pf','Prof + Or','p:gold',C.neu],['','BTC buy & hold','btc',C.btc]];
+  const get=(src,k)=>k.startsWith('p:')?(src==='w'?pf[k.slice(2)]:null):(src==='w'?w[k]:a[k]);
+  const vals=rows.map(r=>get('w',r[2])).filter(Boolean).map(m=>Math.abs(m.perf)); const mx=Math.max(...vals,1);
+  const f=(x,d=1)=>x==null?'—':(x>0?'+':'')+Number(x).toFixed(d)+' %';
+  const body=rows.map(([cls,name,k,c])=>{const m=get('w',k), A=get('a',k); if(!m&&!A)return '';
+    return `<tr class="${cls}"><td><span class="bar" style="width:${m?Math.max(3,Math.abs(m.perf)/mx*60):0}px;background:${c}"></span>${name}</td>
+      <td style="color:${m&&m.perf>=0?C.up:C.dn}">${m?f(m.perf):'—'}</td><td>${m&&m.sharpe!=null?m.sharpe:'—'}</td><td style="color:${C.dn}">${m?m.dd+' %':'—'}</td>
+      <td style="color:${A&&A.perf>=0?C.up:C.dn}">${A?'×'+A.x:'—'}</td><td>${A?A.cagr+' %':'—'}</td><td style="color:${C.dn}">${A?A.dd+' %':'—'}</td></tr>`;}).join('');
+  const s=B.alts||{};
+  $('cmp').innerHTML=`<h3>Résumé : ton système vs ton prof vs BTC</h3>
+    <p class="q">Fenêtre de référence du prof (${win[0]} → ${win[1]}) et période longue depuis 2020 · frais 0,045 % · signaux décalés d'une bougie</p>
+    <table class="ctab"><thead><tr><th></th><th class="g" colspan="3">Fenêtre du prof</th><th class="g" colspan="3">Depuis 2020</th></tr>
+    <tr><th>Stratégie</th><th>Perf.</th><th>Sharpe</th><th>Pire baisse</th><th>Multiple</th><th>CAGR</th><th>Pire baisse</th></tr></thead><tbody>${body}</tbody></table>
+    <div class="verdicts">
+      <div class="vd"><b>Vs ton prof</b> : sur sa fenêtre, ton système fait ${f(w.raw&&w.raw.perf)} contre ${f(pf.raw&&pf.raw.perf)} (Sharpe ${w.raw&&w.raw.sharpe} vs ${pf.raw&&pf.raw.sharpe}), avec une pire baisse plus faible (${w.raw&&w.raw.dd} % vs ${pf.raw&&pf.raw.dd} %).</div>
+      <div class="vd"><b>Vs BTC</b> : BTC fait ${f(w.btc&&w.btc.perf)} sur la même fenêtre avec ${w.btc&&w.btc.dd} % de baisse max. Depuis 2020 : ×${a.raw&&a.raw.x} pour ton système contre ×${a.btc&&a.btc.x} pour BTC.</div>
+      <div class="vd"><b>Les alts</b> : actives ${s.pct_time_alts??'—'} % du temps depuis 2020 (${s.avg_n_alts??'—'} tokens en moyenne). Elles ajoutent ${a.full&&a.raw?(a.full.cagr-a.raw.cagr).toFixed(1):'—'} pt de CAGR depuis 2020 mais ${w.full&&w.raw?(w.full.perf-w.raw.perf).toFixed(1):'—'} pt sur la fenêtre du prof. Liste de tokens d'aujourd'hui : résultat optimiste (biais du survivant).</div>
+    </div>`;
+}
 function renderPerf(){
+  if(!(B.curves||{}).full) SER=SER.filter(x=>x[0]!=='full');
+  renderCmp();
   $('lg').innerHTML=SER.map(([,l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('');
   const mw=B.metrics_window||{}, mf=B.metrics_full||{}, pf=B.prof||{};
   $('kpis').innerHTML=SER.map(([k,l,c])=>{const w=mw[k]||{},f=mf[k]||{},p=pf[k];
