@@ -28,6 +28,15 @@ zMode = input.string("Valeur > 0", "Lecture", options=["Valeur > 0", "État ±1"
 capital = input.float(20000, "Capital (€)", group="Affichage")
 tPos  = input.string("Haut droite", "Position du tableau", options=["Haut droite", "Haut gauche", "Bas droite", "Bas gauche", "Centre"], group="Affichage")
 tSize = input.string("Normal", "Taille du texte", options=["Petit", "Normal", "Grand"], group="Affichage")
+gA = "Alts suivis (tendance 2D, filtres vs BTC / vs ETH / USD de la page 5)"
+a1 = input.symbol("BINANCE:SUIUSDT",  "Alt 1", group=gA)
+a2 = input.symbol("BINANCE:TAOUSDT",  "Alt 2", group=gA)
+a3 = input.symbol("BINANCE:AAVEUSDT", "Alt 3", group=gA)
+a4 = input.symbol("BINANCE:LINKUSDT", "Alt 4", group=gA)
+a5 = input.symbol("BINANCE:AVAXUSDT", "Alt 5", group=gA)
+a6 = input.symbol("BYBIT:HYPEUSDT",   "Alt 6", group=gA)
+a7 = input.symbol("BYBIT:AEROUSDT",   "Alt 7", group=gA)
+a8 = input.symbol("BINANCE:UNIUSDT",  "Alt 8", group=gA)
 
 // ============================================================================================
 //  Indicateurs — logique reprise des scripts originaux, renvoie +1 / -1 (0 = neutre)
@@ -227,6 +236,38 @@ b_trash() =>
 [r1, r2, r3, r4, r5, pr1, pr2, pr3, pr4, pr5, tR, ptR] = request.security(ETHBTC, "2D", b_rot())
 [t1, t2, t3, t4, t5, pt1, pt2, pt3, pt4, pt5, tT, ptT] = request.security(OTHD, "3D", b_trash())
 
+// Alts : mini-TPI de la page ETHBTC (5 ind.) sur TOKEN/USD, TOKEN/BTC, TOKEN/ETH en 2D
+f_rotTPI() => (f_dega(23, 4, 2.0, 21, 40, 1.7, 1.7) + f_sebastine(16, 15) + f_tci(16, 40, 50, 0.3) + f_zproxy(27) + f_wonder(20)) / 5.0
+b_alt() =>
+    sc = f_rotTPI()
+    [sc, sc[1]]
+BTCQ = "/BINANCE:BTCUSDT"
+ETHQ = "/BINANCE:ETHUSDT"
+[u1, pu1] = request.security(a1, "2D", b_alt())
+[b1, pb1] = request.security(a1 + BTCQ, "2D", b_alt())
+[h1, ph1] = request.security(a1 + ETHQ, "2D", b_alt())
+[u2, pu2] = request.security(a2, "2D", b_alt())
+[b2, pb2] = request.security(a2 + BTCQ, "2D", b_alt())
+[h2, ph2] = request.security(a2 + ETHQ, "2D", b_alt())
+[u3, pu3] = request.security(a3, "2D", b_alt())
+[b3, pb3] = request.security(a3 + BTCQ, "2D", b_alt())
+[h3, ph3] = request.security(a3 + ETHQ, "2D", b_alt())
+[u4, pu4] = request.security(a4, "2D", b_alt())
+[b4, pb4] = request.security(a4 + BTCQ, "2D", b_alt())
+[h4, ph4] = request.security(a4 + ETHQ, "2D", b_alt())
+[u5, pu5] = request.security(a5, "2D", b_alt())
+[b5, pb5] = request.security(a5 + BTCQ, "2D", b_alt())
+[h5, ph5] = request.security(a5 + ETHQ, "2D", b_alt())
+[u6, pu6] = request.security(a6, "2D", b_alt())
+[b6, pb6] = request.security(a6 + BTCQ, "2D", b_alt())
+[h6, ph6] = request.security(a6 + ETHQ, "2D", b_alt())
+[u7, pu7] = request.security(a7, "2D", b_alt())
+[b7, pb7] = request.security(a7 + BTCQ, "2D", b_alt())
+[h7, ph7] = request.security(a7 + ETHQ, "2D", b_alt())
+[u8, pu8] = request.security(a8, "2D", b_alt())
+[b8, pb8] = request.security(a8 + BTCQ, "2D", b_alt())
+[h8, ph8] = request.security(a8 + ETHQ, "2D", b_alt())
+
 // Z-Score réel (optionnel) : lu sur le graphique lui-même
 zExt = zMode == "Valeur > 0" ? (zSrc > 0 ? 1 : -1) : (zSrc >= 0.5 ? 1 : zSrc <= -0.5 ? -1 : 0)
 m3  = zUseExt ? zExt : m3p
@@ -339,7 +380,7 @@ pos = tPos == "Haut gauche" ? position.top_left : tPos == "Bas droite" ? positio
 bgcolor(isLong ? color.new(UP, 93) : color.new(DN, 94), title="Fond selon le régime")
 
 // 12 colonnes : 0 = libellé, 1..10 = jauge / indicateurs, 11 = score
-var table tb = table.new(pos, 12, 16, bgcolor=BG, frame_color=#232B3A, frame_width=1, border_color=BG, border_width=2)
+var table tb = table.new(pos, 12, 25, bgcolor=BG, frame_color=#232B3A, frame_width=1, border_color=BG, border_width=2)
 
 // boussole : 10 cases de -1 à +1, remplies du centre vers le score
 f_gauge(int row, string lab, string sub, float v, string verdict) =>
@@ -355,6 +396,16 @@ f_gauge(int row, string lab, string sub, float v, string verdict) =>
 // ligne d'indicateurs : une case colorée par indicateur (nom abrégé, infobulle = nom complet)
 f_ind(int row, int col, string abbr, string full, int v) =>
     table.cell(tb, col, row, abbr, text_color=BG, bgcolor=f_s(v), text_size=szS, tooltip=full + " : " + (v > 0 ? "+1 haussier" : v < 0 ? "−1 baissier" : "0 neutre"))
+
+// ligne d'alt : 3 filtres de tendance (dernière bougie 2D close) + score /3
+f_alt(int row, string sym, float bu, float bb, float bh) =>
+    name = str.replace_all(str.replace_all(str.replace_all(sym, "BINANCE:", ""), "BYBIT:", ""), "USDT", "")
+    ok = (bb > 0 ? 1 : 0) + (bh > 0 ? 1 : 0) + (bu > 0 ? 1 : 0)
+    table.cell(tb, 0, row, name, text_color=TXT, text_size=sz, text_halign=text.align_left, bgcolor=BG2)
+    table.cell(tb, 1, row, na(bb) ? "—" : "vs BTC", text_color=BG, bgcolor=na(bb) ? #1B2230 : bb > 0 ? UP : DN, text_size=szS, tooltip="TPI TOKEN/BTC 2D : " + str.tostring(bb, "+0.00;-0.00"))
+    table.cell(tb, 4, row, na(bh) ? "—" : "vs ETH", text_color=BG, bgcolor=na(bh) ? #1B2230 : bh > 0 ? UP : DN, text_size=szS, tooltip="TPI TOKEN/ETH 2D : " + str.tostring(bh, "+0.00;-0.00"))
+    table.cell(tb, 7, row, na(bu) ? "—" : "USD", text_color=BG, bgcolor=na(bu) ? #1B2230 : bu > 0 ? UP : DN, text_size=szS, tooltip="TPI TOKEN/USD 2D : " + str.tostring(bu, "+0.00;-0.00"))
+    table.cell(tb, 11, row, str.tostring(ok) + "/3" + (ok == 3 ? " ✓" : ""), text_color=ok == 3 ? UP : ok == 2 ? NEU : DN, text_size=sz, bgcolor=BG2)
 
 // barre d'exposition : 10 cases = 100 %
 f_row(int row, string name, float w, color c) =>
@@ -403,7 +454,17 @@ if barstate.islast
     f_row(10, "BTC",  btcW, #F7931A)
     f_row(11, "Alts (trash)", trashPct, #C77DFF)
     f_row(12, "Cash", cashW, NEU)
-    table.cell(tb, 0, 13, "Alts retenus : table de sélection sur le dashboard", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+    table.cell(tb, 0, 13, "ALTS SUIVIS · TENDANCE 2D", text_color=MUTED, text_size=szS, text_halign=text.align_left)
+    cA = closes(tR)
+    f_alt(14, a1, cA ? u1 : pu1, cA ? b1 : pb1, cA ? h1 : ph1)
+    f_alt(15, a2, cA ? u2 : pu2, cA ? b2 : pb2, cA ? h2 : ph2)
+    f_alt(16, a3, cA ? u3 : pu3, cA ? b3 : pb3, cA ? h3 : ph3)
+    f_alt(17, a4, cA ? u4 : pu4, cA ? b4 : pb4, cA ? h4 : ph4)
+    f_alt(18, a5, cA ? u5 : pu5, cA ? b5 : pb5, cA ? h5 : ph5)
+    f_alt(19, a6, cA ? u6 : pu6, cA ? b6 : pb6, cA ? h6 : ph6)
+    f_alt(20, a7, cA ? u7 : pu7, cA ? b7 : pb7, cA ? h7 : ph7)
+    f_alt(21, a8, cA ? u8 : pu8, cA ? b8 : pb8, cA ? h8 : ph8)
+    table.cell(tb, 0, 22, "3 filtres sur 5 : sélection complète (MCap, bêta) sur le dashboard", text_color=MUTED, text_size=szS, text_halign=text.align_left)
 
 // fusions de cellules : une seule fois (les répéter à chaque tick peut lever une erreur)
 var bool merged = false
@@ -423,4 +484,9 @@ if barstate.islast and not merged
     table.merge_cells(tb, 9, 7, 10, 7)
     table.merge_cells(tb, 0, 8, 11, 8)
     table.merge_cells(tb, 0, 13, 11, 13)
+    table.merge_cells(tb, 0, 22, 11, 22)
+    for r = 14 to 21
+        table.merge_cells(tb, 1, r, 3, r)
+        table.merge_cells(tb, 4, r, 6, r)
+        table.merge_cells(tb, 7, r, 10, r)
     merged := true
