@@ -1,13 +1,13 @@
 {
-  "date": "2026-09-29",
+  "date": "2026-09-30",
   "mtpi": 1.0,
   "regime": "LONG",
   "rotation": 0.6,
   "majeur": "ETH",
-  "trash": 1.0,
+  "trash": 0.2,
   "small_caps": true,
-  "trash_pct": 0.2,
-  "alloc": "LONG · ETH 80 / BTC 20  + trash 20%",
+  "trash_pct": 0.04,
+  "alloc": "LONG · ETH 80 / BTC 20  + trash 4%",
   "states": {
     "EWO (5 32)": 1,
     "MTF-EMA (7 19)": 1,
@@ -28,29 +28,30 @@
     "WonderTrend (def)": -1
   },
   "trash_states": {
-    "DFT (14 14)": 1,
+    "DFT (14 14)": -1,
     "EWO (7 26)": 1,
     "MTF-EMA (12 13)": 1,
     "Trend Strength (21)": 1,
-    "Kalman Hull (3..)": 1
+    "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
     "W": false
   },
   "exposure": {
-    "ETH": 0.64,
-    "BTC": 0.16,
-    "SUI": 0.0222,
-    "TAO": 0.0222,
-    "AVAX": 0.0222,
-    "AAVE": 0.0222,
-    "AERO": 0.0222,
-    "FET": 0.0222,
-    "LINK": 0.0222,
-    "ONDO": 0.0222,
-    "RENDER": 0.0222
+    "ETH": 0.768,
+    "BTC": 0.192,
+    "SUI": 0.004,
+    "TAO": 0.004,
+    "AVAX": 0.004,
+    "AAVE": 0.004,
+    "AERO": 0.004,
+    "RENDER": 0.004,
+    "FET": 0.004,
+    "LINK": 0.004,
+    "ONDO": 0.004,
+    "ADA": 0.004
   },
   "reconstructed": {
     "2026-06-30 -> 2026-09-29": 90
