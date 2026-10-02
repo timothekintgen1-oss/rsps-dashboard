@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-01",
+  "date": "2026-10-02",
   "mtpi": 1.0,
   "regime": "LONG",
   "rotation": 0.6,
@@ -35,8 +35,8 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
-    "3D": true,
+    "2D": true,
+    "3D": false,
     "W": false
   },
   "exposure": {
@@ -46,12 +46,12 @@
     "TAO": 0.004,
     "AVAX": 0.004,
     "AAVE": 0.004,
+    "FET": 0.004,
     "AERO": 0.004,
     "RENDER": 0.004,
-    "FET": 0.004,
     "LINK": 0.004,
-    "ONDO": 0.004,
-    "ADA": 0.004
+    "ADA": 0.004,
+    "ONDO": 0.004
   },
   "reconstructed": {
     "2026-06-30 -> 2026-09-29": 90
