@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-05",
+  "date": "2026-10-06",
   "mtpi": 1.0,
   "regime": "LONG",
-  "rotation": 0.6,
+  "rotation": 1.0,
   "majeur": "ETH",
   "trash": -0.2,
   "small_caps": false,
@@ -25,7 +25,7 @@
     "Sebastine (16 15)": 1,
     "TrendChange (16 40)": 1,
     "Z-Score (27 18)": 1,
-    "WonderTrend (def)": -1
+    "WonderTrend (def)": 1
   },
   "trash_states": {
     "DFT (14 14)": -1,
@@ -35,9 +35,9 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
-    "W": true
+    "W": false
   },
   "exposure": {
     "ETH": 0.8,
