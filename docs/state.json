@@ -1,10 +1,10 @@
 {
-  "date": "2026-10-12",
+  "date": "2026-10-13",
   "mtpi": 0.6,
   "regime": "LONG",
-  "rotation": 1.0,
+  "rotation": 0.6,
   "majeur": "ETH",
-  "trash": -0.2,
+  "trash": -0.6,
   "small_caps": false,
   "trash_pct": 0.0,
   "alloc": "LONG · ETH 80 / BTC 20",
@@ -25,19 +25,19 @@
     "Sebastine (16 15)": 1,
     "TrendChange (16 40)": 1,
     "Z-Score (27 18)": 1,
-    "WonderTrend (def)": 1
+    "WonderTrend (def)": -1
   },
   "trash_states": {
     "DFT (14 14)": -1,
-    "EWO (7 26)": 1,
+    "EWO (7 26)": -1,
     "MTF-EMA (12 13)": -1,
     "Trend Strength (21)": 1,
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": true,
-    "3D": false,
-    "W": true
+    "2D": false,
+    "3D": true,
+    "W": false
   },
   "exposure": {
     "ETH": 0.8,
