@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-17",
-  "mtpi": -0.2,
+  "date": "2026-10-18",
+  "mtpi": -0.4,
   "regime": "CASH",
   "rotation": 0.6,
   "majeur": "ETH",
@@ -9,7 +9,7 @@
   "trash_pct": 0.0,
   "alloc": "CASH · Dominant Denominator",
   "states": {
-    "EWO (5 32)": 1,
+    "EWO (5 32)": -1,
     "MTF-EMA (7 19)": -1,
     "Sebastine (9 6)": -1,
     "Z-Score (22 15)": -1,
@@ -35,7 +35,7 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
     "W": false
   },
