@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-19",
-  "mtpi": -0.4,
+  "date": "2026-10-20",
+  "mtpi": -0.6,
   "regime": "CASH",
   "rotation": 1.0,
   "majeur": "ETH",
@@ -14,7 +14,7 @@
     "Sebastine (9 6)": -1,
     "Z-Score (22 15)": -1,
     "DFT (6 29)": 1,
-    "WonderTrend (20)": 1,
+    "WonderTrend (20)": -1,
     "TrendChange (11 35)": 1,
     "MA Band (20 5)": -1,
     "LNL (Tight)": -1,
@@ -35,9 +35,9 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
-    "3D": true,
-    "W": true
+    "2D": true,
+    "3D": false,
+    "W": false
   },
   "exposure": {
     "CASH": 1.0
