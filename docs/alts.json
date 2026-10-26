@@ -1,13 +1,14 @@
 {
-  "date": "2026-10-25",
+  "date": "2026-10-26",
   "threshold": 4,
   "selected": [
     "SUI",
-    "AVAX",
     "AAVE",
     "AERO",
     "RENDER",
-    "NEAR"
+    "AVAX",
+    "NEAR",
+    "TAO"
   ],
   "tokens": [
     {
@@ -20,33 +21,14 @@
         "usd": 1
       },
       "score": 5,
-      "mcap": 3842364382.0,
+      "mcap": 3751641042.0,
       "beta": 1.55,
       "tpi": {
         "vs_btc": 0.6,
         "vs_eth": 1.0,
         "usd": 0.6
       },
-      "price": 0.9339
-    },
-    {
-      "ticker": "AVAX",
-      "filters": {
-        "mcap": 1,
-        "beta": 1,
-        "vs_btc": 1,
-        "vs_eth": 1,
-        "usd": 1
-      },
-      "score": 5,
-      "mcap": 3974419750.0,
-      "beta": 1.29,
-      "tpi": {
-        "vs_btc": 0.6,
-        "vs_eth": 1.0,
-        "usd": 0.6
-      },
-      "price": 8.96
+      "price": 0.9111
     },
     {
       "ticker": "AAVE",
@@ -58,14 +40,14 @@
         "usd": 1
       },
       "score": 5,
-      "mcap": 2123208464.0,
+      "mcap": 2079373694.0,
       "beta": 1.3,
       "tpi": {
         "vs_btc": 0.6,
         "vs_eth": 0.6,
         "usd": 0.6
       },
-      "price": 137.83
+      "price": 134.71
     },
     {
       "ticker": "AERO",
@@ -77,14 +59,14 @@
         "usd": 1
       },
       "score": 5,
-      "mcap": 581279918.0,
-      "beta": 1.58,
+      "mcap": 559792214.0,
+      "beta": 1.57,
       "tpi": {
         "vs_btc": 0.6,
-        "vs_eth": 1.0,
+        "vs_eth": 0.6,
         "usd": 0.6
       },
-      "price": 0.6908
+      "price": 0.667
     },
     {
       "ticker": "RENDER",
@@ -96,14 +78,33 @@
         "usd": 1
       },
       "score": 5,
-      "mcap": 883167605.0,
+      "mcap": 886408662.0,
       "beta": 1.29,
       "tpi": {
         "vs_btc": 0.4,
         "vs_eth": 1.0,
         "usd": 0.6
       },
-      "price": 1.703
+      "price": 1.709
+    },
+    {
+      "ticker": "AVAX",
+      "filters": {
+        "mcap": 1,
+        "beta": 1,
+        "vs_btc": 1,
+        "vs_eth": 1,
+        "usd": 1
+      },
+      "score": 5,
+      "mcap": 3929754598.0,
+      "beta": 1.29,
+      "tpi": {
+        "vs_btc": 0.2,
+        "vs_eth": 1.0,
+        "usd": 0.6
+      },
+      "price": 8.858
     },
     {
       "ticker": "NEAR",
@@ -115,14 +116,33 @@
         "usd": 1
       },
       "score": 4,
-      "mcap": 5867192234.0,
+      "mcap": 5898040520.0,
       "beta": 1.28,
       "tpi": {
         "vs_btc": 1.0,
         "vs_eth": 1.0,
         "usd": 1.0
       },
-      "price": 4.488
+      "price": 4.499
+    },
+    {
+      "ticker": "TAO",
+      "filters": {
+        "mcap": 1,
+        "beta": 1,
+        "vs_btc": 0,
+        "vs_eth": 1,
+        "usd": 1
+      },
+      "score": 4,
+      "mcap": 2836599580.0,
+      "beta": 1.48,
+      "tpi": {
+        "vs_btc": -0.8,
+        "vs_eth": 0.4,
+        "usd": 0.6
+      },
+      "price": 250.4
     },
     {
       "ticker": "TON",
@@ -134,7 +154,7 @@
         "usd": 0
       },
       "score": 3,
-      "mcap": 3532805655.0,
+      "mcap": 3518266292.0,
       "beta": 1.04,
       "tpi": {
         "vs_btc": 1.0,
@@ -153,52 +173,14 @@
         "usd": 1
       },
       "score": 3,
-      "mcap": 4250244219.0,
+      "mcap": 4292284609.0,
       "beta": 1.23,
       "tpi": {
         "vs_btc": 0.2,
         "vs_eth": 0.6,
         "usd": 0.6
       },
-      "price": 6.823
-    },
-    {
-      "ticker": "TAO",
-      "filters": {
-        "mcap": 1,
-        "beta": 1,
-        "vs_btc": 0,
-        "vs_eth": 0,
-        "usd": 1
-      },
-      "score": 3,
-      "mcap": 2855439815.0,
-      "beta": 1.48,
-      "tpi": {
-        "vs_btc": -0.4,
-        "vs_eth": 0.0,
-        "usd": 0.6
-      },
-      "price": 252.1
-    },
-    {
-      "ticker": "FET",
-      "filters": {
-        "mcap": 1,
-        "beta": 1,
-        "vs_btc": 0,
-        "vs_eth": 0,
-        "usd": 1
-      },
-      "score": 3,
-      "mcap": 410918630.0,
-      "beta": 1.38,
-      "tpi": {
-        "vs_btc": -0.4,
-        "vs_eth": 0.0,
-        "usd": 0.6
-      },
-      "price": 0.1782
+      "price": 6.869
     },
     {
       "ticker": "ONDO",
@@ -210,14 +192,33 @@
         "usd": 1
       },
       "score": 3,
-      "mcap": 1992865832.0,
+      "mcap": 1973577564.0,
       "beta": 1.18,
       "tpi": {
-        "vs_btc": 0.0,
-        "vs_eth": 1.0,
+        "vs_btc": -0.4,
+        "vs_eth": 0.8,
         "usd": 0.6
       },
-      "price": 0.4098
+      "price": 0.4054
+    },
+    {
+      "ticker": "FET",
+      "filters": {
+        "mcap": 1,
+        "beta": 1,
+        "vs_btc": 0,
+        "vs_eth": 0,
+        "usd": 1
+      },
+      "score": 3,
+      "mcap": 401698052.0,
+      "beta": 1.38,
+      "tpi": {
+        "vs_btc": -0.8,
+        "vs_eth": 0.0,
+        "usd": 0.4
+      },
+      "price": 0.174
     },
     {
       "ticker": "BNB",
@@ -229,33 +230,14 @@
         "usd": 1
       },
       "score": 2,
-      "mcap": 98088144579.0,
+      "mcap": 97427953525.0,
       "beta": 0.89,
       "tpi": {
         "vs_btc": -0.4,
         "vs_eth": 0.8,
         "usd": 0.6
       },
-      "price": 747.5
-    },
-    {
-      "ticker": "SOL",
-      "filters": {
-        "mcap": 0,
-        "beta": 0,
-        "vs_btc": 0,
-        "vs_eth": 1,
-        "usd": 1
-      },
-      "score": 2,
-      "mcap": 60402130047.0,
-      "beta": 1.25,
-      "tpi": {
-        "vs_btc": -0.6,
-        "vs_eth": 1.0,
-        "usd": 0.6
-      },
-      "price": 102.57
+      "price": 741.31
     },
     {
       "ticker": "LINK",
@@ -267,14 +249,33 @@
         "usd": 1
       },
       "score": 2,
-      "mcap": 8873173920.0,
+      "mcap": 8730726876.0,
       "beta": 1.25,
       "tpi": {
         "vs_btc": -0.6,
         "vs_eth": 0.6,
         "usd": 0.6
       },
-      "price": 11.586
+      "price": 11.392
+    },
+    {
+      "ticker": "SOL",
+      "filters": {
+        "mcap": 0,
+        "beta": 0,
+        "vs_btc": 0,
+        "vs_eth": 1,
+        "usd": 1
+      },
+      "score": 2,
+      "mcap": 59537822015.0,
+      "beta": 1.25,
+      "tpi": {
+        "vs_btc": -0.8,
+        "vs_eth": 1.0,
+        "usd": 0.6
+      },
+      "price": 101.02
     },
     {
       "ticker": "ADA",
@@ -283,17 +284,17 @@
         "beta": 1,
         "vs_btc": 0,
         "vs_eth": 0,
-        "usd": 1
+        "usd": 0
       },
-      "score": 2,
-      "mcap": 7807037196.0,
+      "score": 1,
+      "mcap": 7633619890.0,
       "beta": 1.38,
       "tpi": {
         "vs_btc": -0.8,
         "vs_eth": -0.4,
-        "usd": 0.6
+        "usd": -0.4
       },
-      "price": 0.2081
+      "price": 0.2034
     },
     {
       "ticker": "HYPE",
@@ -305,14 +306,14 @@
         "usd": 0
       },
       "score": 0,
-      "mcap": 17072907846.0,
-      "beta": 1.14,
+      "mcap": 16816624051.0,
+      "beta": 1.13,
       "tpi": {
         "vs_btc": -0.8,
         "vs_eth": -0.4,
-        "usd": -0.2
+        "usd": -0.6
       },
-      "price": 76.842
+      "price": 75.688
     },
     {
       "ticker": "DOGE",
@@ -324,14 +325,14 @@
         "usd": 0
       },
       "score": 0,
-      "mcap": 12171436323.0,
+      "mcap": 12010549668.0,
       "beta": 1.18,
       "tpi": {
         "vs_btc": -1.0,
         "vs_eth": -1.0,
         "usd": -0.8
       },
-      "price": 0.07789
+      "price": 0.07681
     },
     {
       "ticker": "XRP",
@@ -343,14 +344,14 @@
         "usd": 0
       },
       "score": 0,
-      "mcap": 82894193184.0,
+      "mcap": 81441890473.0,
       "beta": 1.27,
       "tpi": {
         "vs_btc": -1.0,
         "vs_eth": -0.6,
-        "usd": 0.0
+        "usd": -0.4
       },
-      "price": 1.3099
+      "price": 1.2861
     }
   ]
 }
