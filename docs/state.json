@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-29",
-  "mtpi": -0.4,
+  "date": "2026-10-30",
+  "mtpi": -0.6,
   "regime": "CASH",
-  "rotation": 1.0,
+  "rotation": 0.6,
   "majeur": "ETH",
   "trash": -1.0,
   "small_caps": false,
@@ -14,7 +14,7 @@
     "Sebastine (9 6)": -1,
     "Z-Score (22 15)": -1,
     "DFT (6 29)": 1,
-    "WonderTrend (20)": 1,
+    "WonderTrend (20)": -1,
     "TrendChange (11 35)": 1,
     "MA Band (20 5)": -1,
     "LNL (Tight)": -1,
@@ -24,7 +24,7 @@
     "DEGA (23..)": 1,
     "Sebastine (16 15)": 1,
     "TrendChange (16 40)": 1,
-    "Z-Score (27 18)": 1,
+    "Z-Score (27 18)": -1,
     "WonderTrend (def)": 1
   },
   "trash_states": {
@@ -35,7 +35,7 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
     "W": false
   },
